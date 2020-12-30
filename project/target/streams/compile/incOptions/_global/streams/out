@@ -1,0 +1,14 @@
+[debug] Created transactional ClassFileManager with tempDir = /Users/vladislav/work/sigil/project/target/scala-2.12/sbt-1.0/classes.bak
+[debug] About to delete class files:
+[debug] 	ProjectDeps.class
+[debug] 	ProjectDeps$versions$.class
+[debug] 	ProjectDeps$.class
+[debug] We backup class files:
+[debug] 	ProjectDeps.class
+[debug] 	ProjectDeps$versions$.class
+[debug] 	ProjectDeps$.class
+[debug] Registering generated classes:
+[debug] 	ProjectDeps.class
+[debug] 	ProjectDeps$versions$.class
+[debug] 	ProjectDeps$.class
+[debug] Removing the temporary directory used for backing up class files: /Users/vladislav/work/sigil/project/target/scala-2.12/sbt-1.0/classes.bak
