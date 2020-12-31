@@ -11,6 +11,8 @@ import sigil.api.v1.{
   TagRoutes,
   VariantRoutes
 }
+import sigil.service.FlagService
+import sigil.service.impl.FlagServiceImpl
 
 object RootActor {
   sealed trait Command
@@ -25,8 +27,9 @@ object Main {
   def createRoutes(): Route = {
     import akka.http.scaladsl.server.Directives._
 
+//    val flagService = new FlagServiceImpl()
     (new ConstraintRoutes).route ~
-      (new FlagRoutes).route ~
+//      (new FlagRoutes).route ~
       (new DistributionRoutes).route ~
       (new SegmentRoutes).route ~
       (new TagRoutes).route ~
