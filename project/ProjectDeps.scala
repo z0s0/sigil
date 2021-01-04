@@ -18,7 +18,10 @@ object ProjectDeps {
     val scalamock = "5.0.0"
 
     val `scalacheck-shapeless_1.14` = "1.2.3"
+    val cats = "2.1.1"
   }
+
+  val catsDeps = Seq("org.typelevel" %% "cats-core" % versions.cats)
 
   val testDeps = Seq(
     "org.scalactic" %% "scalactic" % versions.scalactic % Test,
@@ -53,8 +56,9 @@ object ProjectDeps {
     "org.slf4j" % "slf4j-api" % versions.slf4j
   )
 
-  val tapidDeps = Seq(
+  val tapirDeps = Seq(
     "com.softwaremill.sttp.tapir" %% "tapir-akka-http-server" % versions.tapir,
+    "com.softwaremill.sttp.tapir" %% "tapir-json-circe" % versions.tapir,
     "com.softwaremill.sttp.tapir" %% "tapir-core" % versions.tapir,
     "com.softwaremill.sttp.tapir" %% "tapir-json-play" % versions.tapir,
     "com.softwaremill.sttp.tapir" %% "tapir-openapi-docs" % versions.tapir,
@@ -62,5 +66,7 @@ object ProjectDeps {
     "com.softwaremill.sttp.tapir" %% "tapir-swagger-ui-akka-http" % versions.tapir
   )
 
-  val deps = akkaDeps ++ logDeps
+  val circeDeps = Seq("de.heikoseeberger" %% "akka-http-circe" % "1.31.0")
+
+  val deps = akkaDeps ++ logDeps ++ tapirDeps ++ testDeps ++ catsDeps ++ circeDeps
 }
