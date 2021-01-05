@@ -5,16 +5,8 @@ import akka.actor.typed.{ActorSystem, Behavior}
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.server.Route
 import org.slf4j.LoggerFactory
-import sigil.api.v1.{
-  ConstraintRoutes,
-  DistributionRoutes,
-  FlagRoutes,
-  SegmentRoutes,
-  TagRoutes,
-  VariantRoutes
-}
+import sigil.api.v1.FlagRoutes
 import sigil.repo.impl.pg.FlagRepoPGImpl
-import sigil.service.FlagService
 import sigil.service.impl.FlagServiceImpl
 
 object RootActor {
@@ -30,8 +22,6 @@ case class Person(name: String, age: Int)
 
 object Main {
   def createRoutes(): Route = {
-    import akka.http.scaladsl.server.Directives._
-
     val flagRepo = new FlagRepoPGImpl
 
     val flagService = new FlagServiceImpl(flagRepo)
