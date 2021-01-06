@@ -18,8 +18,6 @@ object RootActor {
   }
 }
 
-case class Person(name: String, age: Int)
-
 object Main {
   def createRoutes(): Route = {
     val flagRepo = new FlagRepoPGImpl

@@ -36,6 +36,7 @@ object ProjectDeps {
     "com.typesafe.akka" %% "akka-stream" % versions.akka,
     "com.typesafe.akka" %% "akka-http" % versions.`akka-http`,
     "com.typesafe.akka" %% "akka-stream-testkit" % versions.akka,
+    "com.typesafe.akka" %% "akka-slf4j" % versions.akka,
     "com.typesafe.akka" %% "akka-http-testkit" % versions.`akka-http`,
     "com.typesafe.akka" %% "akka-slf4j" % versions.`akka`,
     "com.typesafe.akka" %% "akka-actor-typed" % versions.`akka`,
@@ -66,7 +67,11 @@ object ProjectDeps {
     "com.softwaremill.sttp.tapir" %% "tapir-swagger-ui-akka-http" % versions.tapir
   )
 
+  val cassandraDeps = Seq(
+    "com.datastax.cassandra" % "cassandra-driver-core" % "3.1.1"
+  )
+
   val circeDeps = Seq("de.heikoseeberger" %% "akka-http-circe" % "1.31.0")
 
-  val deps = akkaDeps ++ logDeps ++ tapirDeps ++ testDeps ++ catsDeps ++ circeDeps
+  val deps = akkaDeps ++ logDeps ++ tapirDeps ++ testDeps ++ catsDeps ++ circeDeps ++ cassandraDeps
 }

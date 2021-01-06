@@ -1,4 +1,4 @@
-package sigil
+package sigil.api
 
 import cats.data.Validated
 

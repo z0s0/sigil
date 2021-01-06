@@ -1,7 +1,7 @@
 package sigil.api.v1.params
 
 import cats.data.Validated
-import sigil.ApiParams
+import sigil.api.ApiParams
 
 final case class FlagsParams(lim: Option[Int],
                              offset: Option[Int],

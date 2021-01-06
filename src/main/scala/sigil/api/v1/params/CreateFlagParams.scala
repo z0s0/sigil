@@ -1,7 +1,7 @@
 package sigil.api.v1.params
 
 import cats.data.Validated
-import sigil.ApiParams
+import sigil.api.ApiParams
 import io.circe.generic.semiauto.deriveDecoder
 
 object CreateFlagParams {
