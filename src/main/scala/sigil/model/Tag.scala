@@ -1,3 +1,9 @@
 package sigil.model
 
-final case class Tag()
+import io.circe.Encoder
+import io.circe.generic.semiauto.deriveEncoder
+
+object Tag {
+  implicit val jsonEncoder: Encoder[Tag] = deriveEncoder
+}
+final case class Tag(id: Int)

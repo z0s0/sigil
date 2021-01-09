@@ -11,7 +11,9 @@ import sigil.BaseRouter
 import sigil.api.v1.params.{CreateFlagParams, FlagsParams}
 import sigil.service.FlagService
 
-final class FlagRoutes(flagService: FlagService) extends BaseRouter {
+import scala.concurrent.Future
+
+final class FlagRoutes(flagService: FlagService[Future]) extends BaseRouter {
   override def route: Route = pathPrefix("api" / "v1") {
     list ~ create
   }
@@ -38,11 +40,12 @@ final class FlagRoutes(flagService: FlagService) extends BaseRouter {
           preload,
           deleted
         ).isValid match {
-          case Validated.Valid(a) =>
-            println(a)
-            complete("pidor")
-          case Validated.Invalid(e) =>
-            println(e)
+
+          case Validated.Valid(_) =>
+            onSuccess(flagService.list) { list =>
+              complete(list)
+            }
+          case Validated.Invalid(_) =>
             complete(StatusCodes.BadRequest, "loh")
         }
     }

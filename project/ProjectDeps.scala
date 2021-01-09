@@ -6,11 +6,13 @@ object ProjectDeps {
     val `akka-http` = "10.2.1"
     val logback = "1.2.3"
 
+    val postgresql = "42.2.15"
+    val `flyway-core` = "6.5.5"
     val slf4j = "1.7.30"
     val tapir = "0.17.0-M9"
     val managementVersion = "1.0.8"
     val akkaPersistenceJDBC = "3.5.2"
-
+    val doobie = "0.9.0"
     val scalactic = "3.2.0"
     val scalatest = "3.2.0"
     val scalacheck = "1.14.3"
@@ -19,6 +21,7 @@ object ProjectDeps {
 
     val `scalacheck-shapeless_1.14` = "1.2.3"
     val cats = "2.1.1"
+    val testcontainers = "0.38.1"
   }
 
   val catsDeps = Seq("org.typelevel" %% "cats-core" % versions.cats)
@@ -30,6 +33,20 @@ object ProjectDeps {
     "org.scalatestplus" %% "scalacheck-1-14" % versions.`scalacheck-1-14` % Test,
     "org.scalamock" %% "scalamock" % versions.scalamock % Test,
     "com.github.alexarchambault" %% "scalacheck-shapeless_1.14" % versions.`scalacheck-shapeless_1.14` % Test
+  )
+
+  val dbDeps = Seq(
+    "org.postgresql" % "postgresql" % versions.postgresql,
+    "org.flywaydb" % "flyway-core" % versions.`flyway-core`,
+    "com.dimafeng" %% "testcontainers-scala-scalatest" % versions.testcontainers % Test,
+    "com.dimafeng" %% "testcontainers-scala-postgresql" % versions.testcontainers % Test
+  )
+
+  val doobieDeps = Seq(
+    "org.tpolecat" %% "doobie-core" % versions.doobie,
+    "org.tpolecat" %% "doobie-hikari" % versions.doobie,
+    "org.tpolecat" %% "doobie-postgres" % versions.doobie,
+    "org.tpolecat" %% "doobie-scalatest" % versions.doobie % Test
   )
 
   val akkaDeps = Seq(
@@ -73,5 +90,13 @@ object ProjectDeps {
 
   val circeDeps = Seq("de.heikoseeberger" %% "akka-http-circe" % "1.31.0")
 
-  val deps = akkaDeps ++ logDeps ++ tapirDeps ++ testDeps ++ catsDeps ++ circeDeps ++ cassandraDeps
+  val deps = akkaDeps ++
+    logDeps ++
+    tapirDeps ++
+    testDeps ++
+    catsDeps ++
+    circeDeps ++
+    cassandraDeps ++
+    doobieDeps ++
+    dbDeps
 }
