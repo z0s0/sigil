@@ -1,5 +1,16 @@
+CREATE TABLE namespaces(
+  id serial primary key,
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL default (current_timestamp at time zone 'UTC'),
+  updated_at TIMESTAMP WITH TIME ZONE NOT NULL default (current_timestamp at time zone 'UTC'),
+  deleted_at TIMESTAMP WITH TIME ZONE NOT NULL,
+  name text,
+
+  UNIQUE(name)
+);
+
 CREATE TABLE flags(
   id serial primary key,
+  namespace_id INTEGER NOT NULL REFERENCES namespaces(id),
   created_at TIMESTAMP WITH TIME ZONE NOT NULL default (current_timestamp at time zone 'UTC'),
   updated_at TIMESTAMP WITH TIME ZONE NOT NULL default (current_timestamp at time zone 'UTC'),
   deleted_at TIMESTAMP WITH TIME ZONE NOT NULL,
@@ -81,6 +92,19 @@ CREATE TABLE constraints(
   operator text,
   value text
 );
+
 CREATE INDEX on constraints(deleted_at);
 CREATE INDEX on constraints(segment_id);
+
+CREATE table users(
+  id serial primary key,
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL default (current_timestamp at time zone 'UTC'),
+  updated_at TIMESTAMP WITH TIME ZONE NOT NULL default (current_timestamp at time zone 'UTC'),
+  deleted_at TIMESTAMP WITH TIME ZONE NOT NULL,
+  email text not null,
+
+  UNIQUE(email)
+);
+
+create index on users(deleted_at);
 
