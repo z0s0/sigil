@@ -7,16 +7,18 @@ object Flag {
   implicit val jsonEncoder: Encoder[Flag] = deriveEncoder
 }
 
-final case class Flag(key: String,
+final case class Flag(id: Int,
+                      key: String,
                       description: String,
-                      createdBy: String,
-                      updatedBy: String,
+//                      createdBy: String,
+//                      updatedBy: String,
                       enabled: Boolean,
-                      segments: Option[Vector[Segment]],
-                      variants: Option[Vector[Variant]],
-                      tags: Option[Vector[Tag]],
-                      snapshotId: Int,
+//                      segments: Option[Vector[Segment]],
+//                      variants: Option[Vector[Variant]],
+//                      tags: Option[Vector[Tag]],
+//                      snapshotId: Int,
                       notes: String,
-                      dataRecordsEnabled: Boolean,
-                      entityType: String,
-                      evaluation: String)
+//                      dataRecordsEnabled: Boolean,
+//                      entityType: String,
+//                      evaluation: String
+)

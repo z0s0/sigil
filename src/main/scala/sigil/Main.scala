@@ -4,14 +4,17 @@ import akka.actor.typed.scaladsl.Behaviors
 import akka.actor.typed.{ActorSystem, Behavior}
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.server.Route
-import cats.effect.{Blocker, IO}
+import cats.effect.{Blocker, ContextShift, IO, Resource}
 import doobie.hikari.HikariTransactor
 import doobie.util.ExecutionContexts
 import doobie.util.transactor.Transactor
-import org.slf4j.LoggerFactory
+import cats.implicits._
+
 import sigil.api.v1.FlagRoutes
 import sigil.repo.impl.pg.FlagRepoPGImpl
 import sigil.service.impl.FlagServiceImpl
+
+import scala.io.StdIn
 
 object RootActor {
   sealed trait Command
@@ -32,34 +35,58 @@ object Main {
   }
 
   def main(args: Array[String]): Unit = {
-    implicit val system = ActorSystem(RootActor(), "sigil")
-    implicit val cs = IO.contextShift(ExecutionContexts.synchronous)
+    implicit val cs: ContextShift[IO] =
+      IO.contextShift(ExecutionContexts.synchronous)
 
-    val logger = LoggerFactory.getLogger("RuntimeReporter")
-    implicit val ctx = system.executionContext
+    def makeBinding(tr: Transactor[IO])(implicit system: ActorSystem[_]) = {
 
-    HikariTransactor
-      .newHikariTransactor[IO](
-        "org.postgresql.Driver",
-        "jdbc:postgresql://localhost:5432/sigil",
-        "sigil",
-        "harold",
-        system.executionContext,
-        Blocker.liftExecutionContext(ExecutionContexts.synchronous)
-      )
-      .use { transactor =>
-        val binding =
-          Http()
-            .newServerAt("localhost", 5000)
-            .bind(createRoutes(transactor))
+      Resource
+        .make(
+          IO.fromFuture(
+            IO(
+              Http()(system)
+                .newServerAt("localhost", 8080)
+                .bind(createRoutes(tr))
+            )
+          )
+        )(b => IO.fromFuture(IO(b.unbind())).map(_ => ()))
 
-        Migrations.run(
-          DbConfig("sigil", "harold", "jdbc:postgresql://localhost:5432/sigil")
+    }
+
+    val binding =
+      for {
+        ce <- ExecutionContexts.fixedThreadPool[IO](32) // our connect EC
+        be <- Blocker[IO] // our blocking EC
+        xa <- HikariTransactor.newHikariTransactor[IO](
+          "org.postgresql.Driver", // driver classname
+          "jdbc:postgresql://localhost:5432/sigil", // connect URL
+          "sigil", // username
+          "harold", // password
+          ce, // await connection here
+          be // execute JDBC operations here
         )
-        binding.foreach(_ => println("server started at 5000"))
-        IO.unit
-      }
-      .unsafeRunSync()
+        sys <- Resource.make(IO(ActorSystem(RootActor(), "sys")))(
+          s => IO(s.terminate()).map(_ => ())
+        )
+        binding <- makeBinding(xa)(sys)
+      } yield binding
+
+    val app =
+      binding
+        .use { binding =>
+          for {
+            _ <- IO(println(s"Binding on ${binding.localAddress}"))
+            _ <- IO(StdIn.readLine())
+          } yield ()
+        }
+
+    val init = IO(
+      Migrations.run(
+        DbConfig("sigil", "harold", "jdbc:postgresql://localhost:5432/sigil")
+      )
+    )
+
+    (init *> app).unsafeRunSync()
 
   }
 }

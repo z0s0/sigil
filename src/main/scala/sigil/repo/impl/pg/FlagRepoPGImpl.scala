@@ -11,8 +11,18 @@ import sigil.repo.impl.pg.FlagRepoPGImpl.FlagRow
 import scala.concurrent.Future
 
 object FlagRepoPGImpl {
-  final case class FlagRow(key: String) {
-    def toFlag: Flag = ???
+  final case class FlagRow(id: Int,
+                           key: String,
+                           description: String,
+                           enabled: Boolean,
+                           notes: String) {
+    def toFlag: Flag = Flag(
+      id = id,
+      key = key,
+      description = description,
+      enabled = enabled,
+      notes = notes
+    )
   }
 }
 
@@ -25,7 +35,7 @@ class FlagRepoPGImpl(tr: Transactor[IO]) extends FlagRepo[Future] {
   object SQL {
     def list: ConnectionIO[Vector[Flag]] =
       sql"""
-           select id, key, description from flags
+           select id, key, description, enabled, notes from flags
          """
         .query[FlagRow]
         .map(_.toFlag)
