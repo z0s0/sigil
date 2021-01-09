@@ -65,7 +65,11 @@ final class FlagRoutes(flagService: FlagService[Future]) extends BaseRouter {
     (post & entity(as[CreateFlagParams])) { params =>
       params.isValid match {
         case Validated.Valid(_) =>
-          complete(StatusCodes.Created, "ok")
+          onSuccess(flagService.create(params)) {
+            case Some(flag) => complete(StatusCodes.Created, flag)
+            case None       => complete(StatusCodes.UnprocessableEntity)
+          }
+
         case Validated.Invalid(errors) =>
           complete(
             StatusCodes.UnprocessableEntity,

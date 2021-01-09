@@ -6,6 +6,8 @@ import sigil.model.Flag
 import sigil.repo.FlagRepo
 import doobie._
 import doobie.implicits._
+import cats.implicits._
+import sigil.api.v1.params.CreateFlagParams
 import sigil.repo.impl.pg.FlagRepoPGImpl.FlagRow
 
 import scala.concurrent.Future
@@ -35,6 +37,18 @@ class FlagRepoPGImpl(tr: Transactor[IO]) extends FlagRepo[Future] {
       .transact(tr)
       .unsafeToFuture()
 
+  override def create(params: CreateFlagParams): Future[Option[Flag]] = {
+    SQL
+      .insertFlag(params)
+      .flatMap {
+        case Some(id) =>
+          SQL.select(id)
+        case None => Option.empty[Flag].pure[ConnectionIO]
+      }
+      .transact(tr)
+      .unsafeToFuture()
+  }
+
   object SQL {
     def list: ConnectionIO[Vector[Flag]] =
       sql"""
@@ -52,5 +66,14 @@ class FlagRepoPGImpl(tr: Transactor[IO]) extends FlagRepo[Future] {
         .query[FlagRow]
         .map(_.toFlag)
         .option
+
+    def insertFlag(params: CreateFlagParams) =
+      sql"""
+           insert into flags(description, key)
+           values (${params.description}, ${params.key})
+         """.update
+        .withGeneratedKeys[Int]("id")
+        .compile
+        .last
   }
 }
