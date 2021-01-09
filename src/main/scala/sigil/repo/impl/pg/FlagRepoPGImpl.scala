@@ -27,6 +27,9 @@ object FlagRepoPGImpl {
 }
 
 class FlagRepoPGImpl(tr: Transactor[IO]) extends FlagRepo[Future] {
+  override def get(id: Int): Future[Option[Flag]] =
+    SQL.select(id).transact(tr).unsafeToFuture()
+
   def list: Future[Vector[Flag]] =
     SQL.list
       .transact(tr)
@@ -40,5 +43,14 @@ class FlagRepoPGImpl(tr: Transactor[IO]) extends FlagRepo[Future] {
         .query[FlagRow]
         .map(_.toFlag)
         .to[Vector]
+
+    def select(id: Int): ConnectionIO[Option[Flag]] =
+      sql"""
+           select id, key, description, enabled, notes from flags
+           where id = $id
+         """
+        .query[FlagRow]
+        .map(_.toFlag)
+        .option
   }
 }

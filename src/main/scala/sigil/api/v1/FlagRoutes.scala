@@ -12,15 +12,14 @@ import sigil.api.v1.params.{CreateFlagParams, FlagsParams}
 import sigil.service.FlagService
 
 import scala.concurrent.Future
-import scala.util.{Failure, Success}
 
 final class FlagRoutes(flagService: FlagService[Future]) extends BaseRouter {
-  override def route: Route = pathPrefix("api" / "v1") {
-    list ~ create
+  override def route: Route = pathPrefix("api" / "v1" / "flags") {
+    getFlag ~ list ~ create
   }
 
   private def list: Route = {
-    (get & path("flags") & listParameters) {
+    (get & listParameters) {
       (limit,
        offset,
        enabled,
@@ -52,6 +51,14 @@ final class FlagRoutes(flagService: FlagService[Future]) extends BaseRouter {
         }
     }
   }
+
+  private def getFlag: Route =
+    (get & path(IntNumber)) { id: Int =>
+      onSuccess(flagService.get(id)) {
+        case Some(flag) => complete(flag)
+        case None       => complete(StatusCodes.NotFound, "flag not found")
+      }
+    }
 
   private def create: Route = {
     import io.circe.syntax.EncoderOps
