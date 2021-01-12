@@ -36,8 +36,8 @@ final class NamespaceRoutes(namespaceService: NamespaceService[Future])
               complete(StatusCodes.Created, namespace)
 
           }
-        case Validated.Invalid(_) =>
-          complete(StatusCodes.UnprocessableEntity)
+        case Validated.Invalid(err) =>
+          complete(StatusCodes.UnprocessableEntity, params.leftToJson(err))
       }
     }
 }

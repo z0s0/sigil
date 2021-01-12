@@ -2,7 +2,7 @@ CREATE TABLE namespaces(
   id serial primary key,
   created_at TIMESTAMP WITH TIME ZONE NOT NULL default (current_timestamp at time zone 'UTC'),
   updated_at TIMESTAMP WITH TIME ZONE NOT NULL default (current_timestamp at time zone 'UTC'),
-  deleted_at TIMESTAMP WITH TIME ZONE NOT NULL,
+  deleted_at TIMESTAMP WITH TIME ZONE,
   name text,
 
   UNIQUE(name)
@@ -13,7 +13,7 @@ CREATE TABLE flags(
   namespace_id INTEGER NOT NULL REFERENCES namespaces(id),
   created_at TIMESTAMP WITH TIME ZONE NOT NULL default (current_timestamp at time zone 'UTC'),
   updated_at TIMESTAMP WITH TIME ZONE NOT NULL default (current_timestamp at time zone 'UTC'),
-  deleted_at TIMESTAMP WITH TIME ZONE NOT NULL,
+  deleted_at TIMESTAMP WITH TIME ZONE,
   key varchar(64),
   description text,
   created_by text,
@@ -32,7 +32,7 @@ CREATE TABLE tags(
   id serial primary key,
   created_at TIMESTAMP WITH TIME ZONE NOT NULL default (current_timestamp at time zone 'UTC'),
   updated_at TIMESTAMP WITH TIME ZONE NOT NULL default (current_timestamp at time zone 'UTC'),
-  deleted_at TIMESTAMP WITH TIME ZONE NOT NULL,
+  deleted_at TIMESTAMP WITH TIME ZONE,
   value varchar(64)
 );
 CREATE INDEX on tags(value);
@@ -49,7 +49,7 @@ CREATE TABLE variants(
   id serial primary key,
   created_at TIMESTAMP WITH TIME ZONE NOT NULL default (current_timestamp at time zone 'UTC'),
   updated_at TIMESTAMP WITH TIME ZONE NOT NULL default (current_timestamp at time zone 'UTC'),
-  deleted_at TIMESTAMP WITH TIME ZONE NOT NULL,
+  deleted_at TIMESTAMP WITH TIME ZONE,
   flag_id INTEGER NOT NULL REFERENCES flags(id),
   key text,
   attachment text
@@ -59,7 +59,7 @@ CREATE TABLE segments(
   id serial primary key,
   created_at TIMESTAMP WITH TIME ZONE NOT NULL default (current_timestamp at time zone 'UTC'),
   updated_at TIMESTAMP WITH TIME ZONE NOT NULL default (current_timestamp at time zone 'UTC'),
-  deleted_at TIMESTAMP WITH TIME ZONE NOT NULL,
+  deleted_at TIMESTAMP WITH TIME ZONE,
   flag_id INTEGER NOT NULL REFERENCES flags(id),
   description text,
   rank integer,
@@ -72,7 +72,7 @@ CREATE TABLE distributions(
   id serial primary key,
   created_at TIMESTAMP WITH TIME ZONE NOT NULL default (current_timestamp at time zone 'UTC'),
   updated_at TIMESTAMP WITH TIME ZONE NOT NULL default (current_timestamp at time zone 'UTC'),
-  deleted_at TIMESTAMP WITH TIME ZONE NOT NULL,
+  deleted_at TIMESTAMP WITH TIME ZONE,
   segment_id INTEGER NOT NULL REFERENCES segments(id),
   variant_id INTEGER NOT NULL REFERENCES variants(id),
   ppm INTEGER NOT NULL,
@@ -86,7 +86,7 @@ CREATE TABLE constraints(
   id serial primary key,
   created_at TIMESTAMP WITH TIME ZONE NOT NULL default (current_timestamp at time zone 'UTC'),
   updated_at TIMESTAMP WITH TIME ZONE NOT NULL default (current_timestamp at time zone 'UTC'),
-  deleted_at TIMESTAMP WITH TIME ZONE NOT NULL,
+  deleted_at TIMESTAMP WITH TIME ZONE,
   segment_id INTEGER NOT NULL REFERENCES segments(id),
   property text,
   operator text,
@@ -100,7 +100,7 @@ CREATE table users(
   id serial primary key,
   created_at TIMESTAMP WITH TIME ZONE NOT NULL default (current_timestamp at time zone 'UTC'),
   updated_at TIMESTAMP WITH TIME ZONE NOT NULL default (current_timestamp at time zone 'UTC'),
-  deleted_at TIMESTAMP WITH TIME ZONE NOT NULL,
+  deleted_at TIMESTAMP WITH TIME ZONE,
   email text not null,
 
   UNIQUE(email)

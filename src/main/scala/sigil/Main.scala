@@ -9,10 +9,9 @@ import doobie.hikari.HikariTransactor
 import doobie.util.ExecutionContexts
 import doobie.util.transactor.Transactor
 import cats.implicits._
-
-import sigil.api.v1.FlagRoutes
-import sigil.repo.impl.pg.FlagRepoPGImpl
-import sigil.service.impl.FlagServiceImpl
+import sigil.api.v1.{FlagRoutes, NamespaceRoutes}
+import sigil.repo.impl.pg.{FlagRepoPGImpl, NamespaceRepoPGImpl}
+import sigil.service.impl.{FlagServiceImpl, NamespaceServiceImpl}
 
 import scala.io.StdIn
 
@@ -27,11 +26,15 @@ object RootActor {
 
 object Main {
   def createRoutes(transactor: Transactor[IO]): Route = {
+    import akka.http.scaladsl.server.Directives._
+
     val flagRepo = new FlagRepoPGImpl(transactor)
+    val namespaceRepo = new NamespaceRepoPGImpl(transactor)
 
     val flagService = new FlagServiceImpl(flagRepo)
+    val namespaceService = new NamespaceServiceImpl(namespaceRepo)
 
-    new FlagRoutes(flagService).route
+    new FlagRoutes(flagService).route ~ (new NamespaceRoutes(namespaceService).route)
   }
 
   def main(args: Array[String]): Unit = {
