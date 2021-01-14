@@ -11,13 +11,16 @@ import sigil.BaseRouter
 import sigil.api.v1.params.{CreateFlagParams, FlagsParams}
 import sigil.service.FlagService
 
-final class FlagRoutes(flagService: FlagService) extends BaseRouter {
-  override def route: Route = pathPrefix("api" / "v1") {
-    list ~ create
+import scala.concurrent.Future
+import scala.util.{Failure, Success}
+
+final class FlagRoutes(flagService: FlagService[Future]) extends BaseRouter {
+  override def route: Route = pathPrefix("api" / "v1" / "flags") {
+    getFlag ~ list ~ create
   }
 
   private def list: Route = {
-    (get & path("flags") & listParameters) {
+    (get & listParameters) {
       (limit,
        offset,
        enabled,
@@ -38,22 +41,36 @@ final class FlagRoutes(flagService: FlagService) extends BaseRouter {
           preload,
           deleted
         ).isValid match {
-          case Validated.Valid(a) =>
-            println(a)
-            complete("pidor")
-          case Validated.Invalid(e) =>
-            println(e)
+
+          case Validated.Valid(_) =>
+            onSuccess(flagService.list) { list =>
+              complete(list)
+            }
+
+          case Validated.Invalid(_) =>
             complete(StatusCodes.BadRequest, "loh")
         }
     }
   }
+
+  private def getFlag: Route =
+    (get & path(IntNumber)) { id: Int =>
+      onSuccess(flagService.get(id)) {
+        case Some(flag) => complete(flag)
+        case None       => complete(StatusCodes.NotFound, "flag not found")
+      }
+    }
 
   private def create: Route = {
     import io.circe.syntax.EncoderOps
     (post & entity(as[CreateFlagParams])) { params =>
       params.isValid match {
         case Validated.Valid(_) =>
-          complete(StatusCodes.Created, "ok")
+          onSuccess(flagService.create(params)) {
+            case Some(flag) => complete(StatusCodes.Created, flag)
+            case None       => complete(StatusCodes.UnprocessableEntity)
+          }
+
         case Validated.Invalid(errors) =>
           complete(
             StatusCodes.UnprocessableEntity,
