@@ -9,6 +9,7 @@ object CreateFlagParams {
 }
 
 final case class CreateFlagParams(description: String,
+                                  namespaceId: Int,
                                   key: Option[String],
                                   template: Option[String])
     extends ApiParams {

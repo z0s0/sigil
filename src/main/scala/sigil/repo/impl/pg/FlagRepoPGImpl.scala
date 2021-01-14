@@ -16,13 +16,13 @@ object FlagRepoPGImpl {
   final case class FlagRow(id: Int,
                            key: String,
                            description: String,
-                           enabled: Boolean,
-                           notes: String) {
+                           enabled: Option[Boolean],
+                           notes: Option[String]) {
     def toFlag: Flag = Flag(
       id = id,
       key = key,
       description = description,
-      enabled = enabled,
+      enabled = enabled.getOrElse(false),
       notes = notes
     )
   }
@@ -69,8 +69,8 @@ class FlagRepoPGImpl(tr: Transactor[IO]) extends FlagRepo[Future] {
 
     def insertFlag(params: CreateFlagParams) =
       sql"""
-           insert into flags(description, key)
-           values (${params.description}, ${params.key})
+           insert into flags(description, key, namespace_id)
+           values (${params.description}, ${params.key}, ${params.namespaceId})
          """.update
         .withGeneratedKeys[Int]("id")
         .compile
