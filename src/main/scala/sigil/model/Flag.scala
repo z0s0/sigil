@@ -17,7 +17,7 @@ final case class Flag(id: Int,
 //                      variants: Option[Vector[Variant]],
 //                      tags: Option[Vector[Tag]],
 //                      snapshotId: Int,
-                      notes: Option[String],
+                      notes: Option[String]
 //                      dataRecordsEnabled: Boolean,
 //                      entityType: String,
 //                      evaluation: String

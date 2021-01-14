@@ -12,7 +12,6 @@ import sigil.api.v1.params.{CreateFlagParams, FlagsParams}
 import sigil.service.FlagService
 
 import scala.concurrent.Future
-import scala.util.{Failure, Success}
 
 final class FlagRoutes(flagService: FlagService[Future]) extends BaseRouter {
   override def route: Route = pathPrefix("api" / "v1" / "flags") {
