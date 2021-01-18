@@ -8,7 +8,11 @@ import doobie._
 import doobie.implicits._
 import doobie.postgres._
 import cats.implicits._
-import sigil.api.v1.params.{CreateFlagParams, CreateVariantParams}
+import sigil.api.v1.params.{
+  CreateFlagParams,
+  CreateSegmentParams,
+  CreateVariantParams
+}
 import sigil.repo.impl.pg.FlagRepoPGImpl.{FlagRow, VariantRow}
 
 import scala.concurrent.Future
@@ -80,6 +84,22 @@ class FlagRepoPGImpl(tr: Transactor[IO]) extends FlagRepo[Future] {
       .transact(tr)
       .unsafeToFuture()
   }
+
+  override def createSegment(params: CreateSegmentParams) = ???
+
+  override def deleteVariant(variantId: Int): Future[Either[String, Int]] =
+    sql"""delete from variants where id = $variantId""".update
+      .withUniqueGeneratedKeys[Int]("id")
+      .map(Either.right[String, Int](_))
+      .transact(tr)
+      .unsafeToFuture()
+
+  override def deleteSegment(segmentId: Int): Future[Either[String, Int]] =
+    sql"""delete from segments where id = $segmentId""".update
+      .withUniqueGeneratedKeys[Int]("id")
+      .map(Either.right[String, Int](_))
+      .transact(tr)
+      .unsafeToFuture()
 
   object SQL {
     def list: ConnectionIO[Vector[Flag]] =
