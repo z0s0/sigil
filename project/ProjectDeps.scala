@@ -9,7 +9,7 @@ object ProjectDeps {
     val postgresql = "42.2.15"
     val `flyway-core` = "6.5.5"
     val slf4j = "1.7.30"
-    val tapir = "0.17.0-M9"
+    val tapir = "0.17.12"
     val managementVersion = "1.0.8"
     val akkaPersistenceJDBC = "3.5.2"
     val doobie = "0.9.0"
@@ -21,6 +21,11 @@ object ProjectDeps {
 
     val `scalacheck-shapeless_1.14` = "1.2.3"
     val cats = "2.1.1"
+    val zio = "1.0.3"
+    val interopCats = "2.2.0.1"
+    val `zio-config` = "1.0.0-RC27"
+    val `zio-logging` = "0.5.2"
+    val http4s = "0.21.11"
     val testcontainers = "0.38.1"
   }
 
@@ -75,7 +80,8 @@ object ProjectDeps {
   )
 
   val tapirDeps = Seq(
-    "com.softwaremill.sttp.tapir" %% "tapir-akka-http-server" % versions.tapir,
+    "com.softwaremill.sttp.tapir" %% "tapir-zio" % versions.tapir,
+    "com.softwaremill.sttp.tapir" %% "tapir-zio-http4s-server" % versions.tapir,
     "com.softwaremill.sttp.tapir" %% "tapir-json-circe" % versions.tapir,
     "com.softwaremill.sttp.tapir" %% "tapir-core" % versions.tapir,
     "com.softwaremill.sttp.tapir" %% "tapir-json-play" % versions.tapir,
@@ -84,11 +90,20 @@ object ProjectDeps {
     "com.softwaremill.sttp.tapir" %% "tapir-swagger-ui-akka-http" % versions.tapir
   )
 
-  val cassandraDeps = Seq(
-    "com.datastax.cassandra" % "cassandra-driver-core" % "3.1.1"
-  )
-
   val circeDeps = Seq("de.heikoseeberger" %% "akka-http-circe" % "1.31.0")
+  val zioDeps = List(
+    "dev.zio" %% "zio" % versions.zio,
+    "dev.zio" %% "zio-macros" % versions.zio,
+    "dev.zio" %% "zio-interop-cats" % versions.interopCats,
+    "dev.zio" %% "zio-config" % versions.`zio-config`,
+    "dev.zio" %% "zio-config-magnolia" % versions.`zio-config`,
+    "dev.zio" %% "zio-config-typesafe" % versions.`zio-config`,
+    "dev.zio" %% "zio-test" % versions.zio % Test,
+    "dev.zio" %% "zio-test-sbt" % versions.zio % Test,
+    "dev.zio" %% "zio-test-magnolia" % versions.zio % Test,
+    "dev.zio" %% "zio-logging" % versions.`zio-logging`,
+    "dev.zio" %% "zio-logging-slf4j" % versions.`zio-logging`
+  )
 
   val deps = akkaDeps ++
     logDeps ++
@@ -96,7 +111,7 @@ object ProjectDeps {
     testDeps ++
     catsDeps ++
     circeDeps ++
-    cassandraDeps ++
     doobieDeps ++
-    dbDeps
+    dbDeps ++
+    zioDeps
 }

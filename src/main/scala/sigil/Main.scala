@@ -11,6 +11,7 @@ import doobie.util.transactor.Transactor
 import cats.implicits._
 import sigil.api.v1.flag.VariantRoutes
 import sigil.api.v1.{FlagRoutes, NamespaceRoutes}
+import sigil.config.DbConfig
 import sigil.repo.impl.pg.{FlagRepoPGImpl, NamespaceRepoPGImpl}
 import sigil.service.impl.{FlagServiceImpl, NamespaceServiceImpl}
 

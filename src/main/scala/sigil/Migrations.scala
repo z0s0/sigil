@@ -1,6 +1,7 @@
 package sigil
 
 import org.flywaydb.core.Flyway
+import sigil.config.DbConfig
 
 object Migrations {
   def run(dbConfig: DbConfig): Unit = {

@@ -1,4 +1,4 @@
-package sigil
+package sigil.config
 
 final case class Config(dbConfig: DbConfig)
 
