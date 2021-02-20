@@ -9,6 +9,7 @@ import doobie.hikari.HikariTransactor
 import doobie.util.ExecutionContexts
 import doobie.util.transactor.Transactor
 import cats.implicits._
+import sigil.api.v1.flag.VariantRoutes
 import sigil.api.v1.{FlagRoutes, NamespaceRoutes}
 import sigil.repo.impl.pg.{FlagRepoPGImpl, NamespaceRepoPGImpl}
 import sigil.service.impl.{FlagServiceImpl, NamespaceServiceImpl}
@@ -34,7 +35,9 @@ object Main {
     val flagService = new FlagServiceImpl(flagRepo)
     val namespaceService = new NamespaceServiceImpl(namespaceRepo)
 
-    new FlagRoutes(flagService).route ~ (new NamespaceRoutes(namespaceService).route)
+    (new VariantRoutes(flagService)).route ~
+      new FlagRoutes(flagService).route ~
+      (new NamespaceRoutes(namespaceService).route)
   }
 
   def main(args: Array[String]): Unit = {

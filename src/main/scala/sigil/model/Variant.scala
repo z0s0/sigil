@@ -7,4 +7,4 @@ object Variant {
   implicit val jsonEncoder: Encoder[Variant] = deriveEncoder
 }
 
-final case class Variant(id: Int)
+final case class Variant(id: Int, key: String, attachment: Option[String])

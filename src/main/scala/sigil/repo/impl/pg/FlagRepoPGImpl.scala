@@ -2,17 +2,36 @@ package sigil.repo.impl.pg
 
 import cats.effect.IO
 import doobie.util.transactor.Transactor
-import sigil.model.Flag
+import sigil.model.{Flag, Variant}
 import sigil.repo.FlagRepo
 import doobie._
 import doobie.implicits._
+import doobie.postgres._
 import cats.implicits._
-import sigil.api.v1.params.CreateFlagParams
-import sigil.repo.impl.pg.FlagRepoPGImpl.FlagRow
+import sigil.api.v1.params.{
+  CreateFlagParams,
+  CreateSegmentParams,
+  CreateVariantParams
+}
+import sigil.repo.impl.pg.FlagRepoPGImpl.{FlagRow, VariantRow}
 
 import scala.concurrent.Future
 
 object FlagRepoPGImpl {
+  final case class VariantRow(id: Int,
+                              key: String,
+                              attachment: Option[String]) {
+    def toVariant: Variant =
+      Variant(id = id, key = key, attachment = attachment)
+  }
+
+  final case class FlagWithPreloadsRow(fId: Int,
+                                       fKey: String,
+                                       fDesc: String,
+                                       fEnabled: Option[Boolean],
+                                       fNotes: Option[String],
+                                       variants: Vector[VariantRow],
+  )
   final case class FlagRow(id: Int,
                            key: String,
                            description: String,
@@ -30,7 +49,7 @@ object FlagRepoPGImpl {
 
 class FlagRepoPGImpl(tr: Transactor[IO]) extends FlagRepo[Future] {
   override def get(id: Int): Future[Option[Flag]] =
-    SQL.select(id).transact(tr).unsafeToFuture()
+    SQL.selectFlag(id, preload = true).transact(tr).unsafeToFuture()
 
   def list: Future[Vector[Flag]] =
     SQL.list
@@ -41,13 +60,46 @@ class FlagRepoPGImpl(tr: Transactor[IO]) extends FlagRepo[Future] {
     SQL
       .insertFlag(params)
       .flatMap {
-        case Some(id) =>
-          SQL.select(id)
-        case None => Option.empty[Flag].pure[ConnectionIO]
+        case Left(_)   => Option.empty[Flag].pure[ConnectionIO]
+        case Right(id) => SQL.selectFlag(id, preload = false)
       }
       .transact(tr)
       .unsafeToFuture()
   }
+
+  override def createVariant(
+    params: CreateVariantParams
+  ): Future[Either[String, Variant]] = {
+    SQL
+      .insertVariant(params)
+      .flatMap {
+        case Left(err) => Either.left[String, Variant](err).pure[ConnectionIO]
+        case Right(id) =>
+          Either
+            .right[String, Variant](
+              Variant(id = id, key = params.key, attachment = params.attachment)
+            )
+            .pure[ConnectionIO]
+      }
+      .transact(tr)
+      .unsafeToFuture()
+  }
+
+  override def createSegment(params: CreateSegmentParams) = ???
+
+  override def deleteVariant(variantId: Int): Future[Either[String, Int]] =
+    sql"""delete from variants where id = $variantId""".update
+      .withUniqueGeneratedKeys[Int]("id")
+      .map(Either.right[String, Int](_))
+      .transact(tr)
+      .unsafeToFuture()
+
+  override def deleteSegment(segmentId: Int): Future[Either[String, Int]] =
+    sql"""delete from segments where id = $segmentId""".update
+      .withUniqueGeneratedKeys[Int]("id")
+      .map(Either.right[String, Int](_))
+      .transact(tr)
+      .unsafeToFuture()
 
   object SQL {
     def list: ConnectionIO[Vector[Flag]] =
@@ -58,7 +110,7 @@ class FlagRepoPGImpl(tr: Transactor[IO]) extends FlagRepo[Future] {
         .map(_.toFlag)
         .to[Vector]
 
-    def select(id: Int): ConnectionIO[Option[Flag]] =
+    def selectFlag(id: Int, preload: Boolean): ConnectionIO[Option[Flag]] = {
       sql"""
            select id, key, description, enabled, notes from flags
            where id = $id
@@ -66,14 +118,33 @@ class FlagRepoPGImpl(tr: Transactor[IO]) extends FlagRepo[Future] {
         .query[FlagRow]
         .map(_.toFlag)
         .option
+    }
+
+    def selectVariant(id: Int): ConnectionIO[Option[Variant]] = {
+      sql"""
+        select id, key, attachment from variants
+      """
+        .query[VariantRow]
+        .map(_.toVariant)
+        .option
+    }
 
     def insertFlag(params: CreateFlagParams) =
       sql"""
            insert into flags(description, key, namespace_id)
            values (${params.description}, ${params.key}, ${params.namespaceId})
          """.update
-        .withGeneratedKeys[Int]("id")
-        .compile
-        .last
+        .withUniqueGeneratedKeys[Int]("id")
+        .attemptSqlState
+
+    def insertVariant(params: CreateVariantParams) =
+      sql"""
+           insert into variants(flag_id, key, attachment)
+           values (${params.flagId}, ${params.key}, ${params.attachment})
+         """.update
+        .withUniqueGeneratedKeys[Int]("id")
+        .attemptSomeSqlState {
+          case sqlstate.class23.UNIQUE_VIOLATION => "Key must be unique"
+        }
   }
 }
