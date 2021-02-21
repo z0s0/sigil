@@ -1,6 +1,5 @@
 package sigil.repo.impl.pg
 
-import cats.effect.IO
 import doobie.util.transactor.Transactor
 import sigil.model.{Flag, Variant}
 import sigil.repo.FlagRepo
@@ -14,8 +13,8 @@ import sigil.api.v1.params.{
   CreateVariantParams
 }
 import sigil.repo.impl.pg.FlagRepoPGImpl.{FlagRow, VariantRow}
-
-import scala.concurrent.Future
+import zio.Task
+import zio.interop.catz._
 
 object FlagRepoPGImpl {
   final case class VariantRow(id: Int,
@@ -47,16 +46,15 @@ object FlagRepoPGImpl {
   }
 }
 
-class FlagRepoPGImpl(tr: Transactor[IO]) extends FlagRepo[Future] {
-  override def get(id: Int): Future[Option[Flag]] =
-    SQL.selectFlag(id, preload = true).transact(tr).unsafeToFuture()
+class FlagRepoPGImpl(tr: Transactor[Task]) extends FlagRepo.Service {
+  override def get(id: Int): Task[Option[Flag]] =
+    SQL.selectFlag(id, preload = true).transact(tr)
 
-  def list: Future[Vector[Flag]] =
+  def list: Task[Vector[Flag]] =
     SQL.list
       .transact(tr)
-      .unsafeToFuture()
 
-  override def create(params: CreateFlagParams): Future[Option[Flag]] = {
+  override def create(params: CreateFlagParams): Task[Option[Flag]] = {
     SQL
       .insertFlag(params)
       .flatMap {
@@ -64,12 +62,11 @@ class FlagRepoPGImpl(tr: Transactor[IO]) extends FlagRepo[Future] {
         case Right(id) => SQL.selectFlag(id, preload = false)
       }
       .transact(tr)
-      .unsafeToFuture()
   }
 
   override def createVariant(
     params: CreateVariantParams
-  ): Future[Either[String, Variant]] = {
+  ): Task[Either[String, Variant]] = {
     SQL
       .insertVariant(params)
       .flatMap {
@@ -82,24 +79,21 @@ class FlagRepoPGImpl(tr: Transactor[IO]) extends FlagRepo[Future] {
             .pure[ConnectionIO]
       }
       .transact(tr)
-      .unsafeToFuture()
   }
 
   override def createSegment(params: CreateSegmentParams) = ???
 
-  override def deleteVariant(variantId: Int): Future[Either[String, Int]] =
+  override def deleteVariant(variantId: Int): Task[Either[String, Int]] =
     sql"""delete from variants where id = $variantId""".update
       .withUniqueGeneratedKeys[Int]("id")
       .map(Either.right[String, Int](_))
       .transact(tr)
-      .unsafeToFuture()
 
-  override def deleteSegment(segmentId: Int): Future[Either[String, Int]] =
+  override def deleteSegment(segmentId: Int): Task[Either[String, Int]] =
     sql"""delete from segments where id = $segmentId""".update
       .withUniqueGeneratedKeys[Int]("id")
       .map(Either.right[String, Int](_))
       .transact(tr)
-      .unsafeToFuture()
 
   object SQL {
     def list: ConnectionIO[Vector[Flag]] =

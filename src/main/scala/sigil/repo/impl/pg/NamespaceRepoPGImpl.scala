@@ -1,24 +1,24 @@
 package sigil.repo.impl.pg
 
-import cats.effect.IO
 import sigil.api.v1.params.CreateNamespaceParams
 import sigil.model.Namespace
 import sigil.repo.NamespaceRepo
 
-import scala.concurrent.Future
 import doobie.implicits._
 import cats.implicits._
 import doobie.free.connection.ConnectionIO
 import doobie.util.transactor.Transactor
+import zio.Task
+import zio.interop.catz._
 
-class NamespaceRepoPGImpl(tr: Transactor[IO]) extends NamespaceRepo[Future] {
+class NamespaceRepoPGImpl(tr: Transactor[Task]) extends NamespaceRepo.Service {
 
-  override def list: Future[Vector[Namespace]] =
-    SQL.list.transact(tr).unsafeToFuture()
+  override def list: Task[Vector[Namespace]] =
+    SQL.list.transact(tr)
 
   override def create(
     params: CreateNamespaceParams
-  ): Future[Either[String, Namespace]] =
+  ): Task[Either[String, Namespace]] =
     SQL
       .insert(params)
       .map {
@@ -30,7 +30,6 @@ class NamespaceRepoPGImpl(tr: Transactor[IO]) extends NamespaceRepo[Future] {
           Either.left[String, Namespace]("Insertion error")
       }
       .transact(tr)
-      .unsafeToFuture()
 
   object SQL {
     def select(id: Int): ConnectionIO[Option[Namespace]] =
