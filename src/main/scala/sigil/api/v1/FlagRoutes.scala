@@ -88,3 +88,40 @@
 //    "deleted".as[Boolean].optional
 //  )
 //}
+
+package sigil.api.v1
+
+import io.circe.{Decoder, Encoder}
+import org.http4s.circe._
+import org.http4s.{EntityDecoder, EntityEncoder, HttpRoutes}
+import org.http4s.dsl.Http4sDsl
+import sigil.service.FlagService.FlagService
+import zio.{Has, Task, ZLayer}
+import zio.interop.catz._
+
+object FlagRoutes {
+  type FlagRoutes = Has[Service]
+  trait Service {
+    def route: HttpRoutes[Task]
+  }
+
+  implicit def circeJsonDecoder[A](
+    implicit decoder: Decoder[A]
+  ): EntityDecoder[Task, A] = jsonOf[Task, A]
+  implicit def circeJsonEncoder[A](
+    implicit decoder: Encoder[A]
+  ): EntityEncoder[Task, A] =
+    jsonEncoderOf[Task, A]
+
+  val live: ZLayer[FlagService, Nothing, FlagRoutes] = ZLayer.fromService {
+    srv =>
+      val dsl: Http4sDsl[Task] = Http4sDsl[Task]
+      import dsl._
+
+      new Service {
+        override def route: HttpRoutes[Task] = HttpRoutes.of[Task] {
+          case GET -> Root / "v1" / "flags" => Ok(srv.list)
+        }
+      }
+  }
+}

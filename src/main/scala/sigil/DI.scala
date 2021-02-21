@@ -11,5 +11,6 @@ object DI {
   def live =
     (Config.live ++ Blocking.live) >+> DBConnection.live >>>
       DatabaseLayer.live >>>
-      ServiceLayer.live
+      ServiceLayer.live >>>
+      APILayer.live ++ Config.live
 }

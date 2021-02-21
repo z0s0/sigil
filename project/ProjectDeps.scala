@@ -64,6 +64,12 @@ object ProjectDeps {
     "org.slf4j" % "slf4j-api" % versions.slf4j
   )
 
+  val http4sDeps = List(
+    "org.http4s" %% "http4s-blaze-server" % versions.http4s,
+    "org.http4s" %% "http4s-circe" % versions.http4s,
+    "org.http4s" %% "http4s-dsl" % versions.http4s,
+  )
+
   val tapirDeps = Seq(
     "com.softwaremill.sttp.tapir" %% "tapir-zio" % versions.tapir,
     "com.softwaremill.sttp.tapir" %% "tapir-zio-http4s-server" % versions.tapir,
@@ -98,5 +104,6 @@ object ProjectDeps {
     doobieDeps ++
     dbDeps ++
     zioDeps ++
-    configDeps
+    configDeps ++
+    http4sDeps
 }

@@ -1,8 +1,11 @@
 package sigil.api
 
+import sigil.api.v1.FlagRoutes
+import sigil.api.v1.FlagRoutes.FlagRoutes
 import sigil.service.Layer.Services
-import zio.{Has, ULayer, ZLayer}
+import zio.ZLayer
 
 object Layer {
-  val live: ULayer[Has[Int]] = ZLayer.succeed(21)
+  type Routes = FlagRoutes
+  val live: ZLayer[Services, Nothing, Routes] = FlagRoutes.live
 }
