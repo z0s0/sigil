@@ -6,7 +6,8 @@ object Layer {
   val live: ZLayer[Any, Throwable, Has[Config]] = ZLayer.succeed(
     Config(
       dbConfig =
-        DbConfig(username = "serega", password = "22", host = "localhost")
+        DbConfig(username = "serega", password = "22", url = "localhost"),
+      apiConfig = ApiConfig(4444)
     )
   )
 }

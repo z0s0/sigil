@@ -7,7 +7,7 @@ object Migrations {
   def run(dbConfig: DbConfig): Unit = {
     Flyway
       .configure()
-      .dataSource(dbConfig.host, dbConfig.username, dbConfig.password)
+      .dataSource(dbConfig.url, dbConfig.username, dbConfig.password)
       .load()
       .migrate()
   }

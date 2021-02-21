@@ -3,6 +3,7 @@ package sigil
 import org.http4s.HttpRoutes
 import org.http4s.server.Router
 import org.http4s.server.blaze.BlazeServerBuilder
+import sigil.config.{ApiConfig, DbConfig}
 import zio.interop.catz.implicits.ioTimer
 import zio.interop.catz._
 import zio._

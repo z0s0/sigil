@@ -27,11 +27,16 @@ object ProjectDeps {
     val `zio-logging` = "0.5.2"
     val http4s = "0.21.11"
     val testcontainers = "0.38.1"
+    val pureConfigVersion = "0.14.0"
   }
 
-  val catsDeps = Seq("org.typelevel" %% "cats-core" % versions.cats)
+  val catsDeps = List("org.typelevel" %% "cats-core" % versions.cats)
 
-  val testDeps = Seq(
+  val configDeps = List(
+    "com.github.pureconfig" %% "pureconfig" % versions.pureConfigVersion
+  )
+
+  val testDeps = List(
     "org.scalactic" %% "scalactic" % versions.scalactic % Test,
     "org.scalatest" %% "scalatest" % versions.scalatest % Test,
     "org.scalacheck" %% "scalacheck" % versions.scalacheck % Test,
@@ -40,40 +45,20 @@ object ProjectDeps {
     "com.github.alexarchambault" %% "scalacheck-shapeless_1.14" % versions.`scalacheck-shapeless_1.14` % Test
   )
 
-  val dbDeps = Seq(
+  val dbDeps = List(
     "org.postgresql" % "postgresql" % versions.postgresql,
     "org.flywaydb" % "flyway-core" % versions.`flyway-core`,
     "com.dimafeng" %% "testcontainers-scala-scalatest" % versions.testcontainers % Test,
     "com.dimafeng" %% "testcontainers-scala-postgresql" % versions.testcontainers % Test
   )
 
-  val doobieDeps = Seq(
+  val doobieDeps = List(
     "org.tpolecat" %% "doobie-core" % versions.doobie,
     "org.tpolecat" %% "doobie-hikari" % versions.doobie,
     "org.tpolecat" %% "doobie-postgres" % versions.doobie,
     "org.tpolecat" %% "doobie-scalatest" % versions.doobie % Test
   )
 
-  val akkaDeps = Seq(
-    "com.typesafe.akka" %% "akka-stream" % versions.akka,
-    "com.typesafe.akka" %% "akka-http" % versions.`akka-http`,
-    "com.typesafe.akka" %% "akka-stream-testkit" % versions.akka,
-    "com.typesafe.akka" %% "akka-slf4j" % versions.akka,
-    "com.typesafe.akka" %% "akka-http-testkit" % versions.`akka-http`,
-    "com.typesafe.akka" %% "akka-slf4j" % versions.`akka`,
-    "com.typesafe.akka" %% "akka-actor-typed" % versions.`akka`,
-    "com.typesafe.akka" %% "akka-cluster-typed" % versions.`akka`,
-    "com.typesafe.akka" %% "akka-cluster-sharding-typed" % versions.`akka`,
-    "com.typesafe.akka" %% "akka-persistence-typed" % versions.`akka`,
-    "com.typesafe.akka" %% "akka-serialization-jackson" % versions.`akka`,
-    "com.typesafe.akka" %% "akka-persistence-query" % versions.`akka`,
-    "com.typesafe.akka" %% "akka-cluster" % versions.`akka`,
-    "com.typesafe.akka" %% "akka-pki" % versions.`akka`,
-    "com.typesafe.akka" %% "akka-distributed-data" % versions.`akka`,
-    "com.typesafe.akka" %% "akka-remote" % versions.`akka`,
-    "com.typesafe.akka" %% "akka-coordination" % versions.`akka`,
-    "com.typesafe.akka" %% "akka-cluster-tools" % versions.`akka`,
-  )
   val logDeps = Seq(
     "ch.qos.logback" % "logback-classic" % versions.logback,
     "org.slf4j" % "slf4j-api" % versions.slf4j
@@ -105,13 +90,13 @@ object ProjectDeps {
     "dev.zio" %% "zio-logging-slf4j" % versions.`zio-logging`
   )
 
-  val deps = akkaDeps ++
-    logDeps ++
+  val deps = logDeps ++
     tapirDeps ++
     testDeps ++
     catsDeps ++
     circeDeps ++
     doobieDeps ++
     dbDeps ++
-    zioDeps
+    zioDeps ++
+    configDeps
 }
