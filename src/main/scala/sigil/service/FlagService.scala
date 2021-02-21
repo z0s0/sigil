@@ -6,18 +6,37 @@ import sigil.api.v1.params.{
   CreateVariantParams
 }
 import sigil.model.{Flag, Segment, Variant}
+import sigil.repo.FlagRepo.FlagRepo
+import sigil.service.impl.FlagServiceImpl
+import zio.{Has, Task, ZLayer}
 
-trait FlagService[F[_]] {
-  def list: F[Vector[Flag]]
-  def get(id: Int): F[Option[Flag]]
-  def create(params: CreateFlagParams): F[Option[Flag]]
+object FlagService {
 
-  def flagSegments(flagId: Int): F[Vector[Segment]]
-  def flagVariants(flagId: Int): F[Vector[Variant]]
+  type FlagService = Has[Service]
 
-  def createVariant(params: CreateVariantParams): F[Either[String, Variant]]
-  def createSegment(params: CreateSegmentParams): F[Either[String, Segment]]
+  trait Service {
+    def list: Task[Vector[Flag]]
+    def get(id: Int): Task[Option[Flag]]
+    def create(params: CreateFlagParams): Task[Option[Flag]]
 
-  def deleteVariant(flagId: Int, variantId: Int): F[Either[String, Variant]]
-  def deleteSegment(flagId: Int, segmentId: Int): F[Either[String, Segment]]
+    def flagSegments(flagId: Int): Task[Vector[Segment]]
+    def flagVariants(flagId: Int): Task[Vector[Variant]]
+
+    def createVariant(
+      params: CreateVariantParams
+    ): Task[Either[String, Variant]]
+    def createSegment(
+      params: CreateSegmentParams
+    ): Task[Either[String, Segment]]
+
+    def deleteVariant(flagId: Int,
+                      variantId: Int): Task[Either[String, Variant]]
+    def deleteSegment(flagId: Int,
+                      segmentId: Int): Task[Either[String, Segment]]
+  }
+
+  val live: ZLayer[FlagRepo, Nothing, FlagService] = ZLayer.fromService {
+    repo =>
+      new FlagServiceImpl(repo)
+  }
 }

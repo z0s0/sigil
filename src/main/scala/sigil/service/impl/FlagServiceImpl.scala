@@ -10,13 +10,12 @@ import sigil.api.v1.params.{
 import sigil.model.{Flag, Segment, Variant}
 import sigil.repo.FlagRepo
 import sigil.service.FlagService
+import zio.Task
 
-import scala.concurrent.Future
+class FlagServiceImpl(flagRepo: FlagRepo.Service) extends FlagService.Service {
+  override def list: Task[Vector[Flag]] = flagRepo.list
 
-class FlagServiceImpl(flagRepo: FlagRepo[Future]) extends FlagService[Future] {
-  override def list: Future[Vector[Flag]] = flagRepo.list
-
-  override def create(params: CreateFlagParams): Future[Option[Flag]] = {
+  override def create(params: CreateFlagParams): Task[Option[Flag]] = {
     params.key match {
       case Some(_) =>
         flagRepo.create(params)
@@ -25,21 +24,21 @@ class FlagServiceImpl(flagRepo: FlagRepo[Future]) extends FlagService[Future] {
     }
   }
 
-  override def get(id: Int): Future[Option[Flag]] = flagRepo.get(id)
+  override def get(id: Int): Task[Option[Flag]] = flagRepo.get(id)
 
-  override def flagSegments(flagId: Int): Future[Vector[Segment]] =
-    Future.successful(Vector[Segment]())
-  override def flagVariants(flagId: Int): Future[Vector[Variant]] =
-    Future.successful(Vector[Variant]())
+  override def flagSegments(flagId: Int): Task[Vector[Segment]] =
+    Task.succeed(Vector[Segment]())
+  override def flagVariants(flagId: Int): Task[Vector[Variant]] =
+    Task.succeed(Vector[Variant]())
 
   override def createSegment(params: CreateSegmentParams) = ???
   override def createVariant(params: CreateVariantParams) =
     flagRepo.createVariant(params)
 
   override def deleteSegment(flagId: Int,
-                             segmentId: Int): Future[Either[String, Segment]] =
+                             segmentId: Int): Task[Either[String, Segment]] =
     ???
   override def deleteVariant(flagId: Int,
-                             variantId: Int): Future[Either[String, Variant]] =
+                             variantId: Int): Task[Either[String, Variant]] =
     ???
 }

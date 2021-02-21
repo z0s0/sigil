@@ -1,9 +1,12 @@
 package sigil.repo
 
-import sigil.config.Config
-import zio.{Has, ZLayer}
+import sigil.config.DBConnection.DBTransactor
+import sigil.repo.FlagRepo.FlagRepo
+import sigil.repo.NamespaceRepo.NamespaceRepo
+import zio.ZLayer
 
 object Layer {
-  type PersistenceLayer = Has[Int]
-  def live: ZLayer[Has[Config], Throwable, PersistenceLayer] = ZLayer.succeed(1)
+  type Repos = FlagRepo with NamespaceRepo
+  def live: ZLayer[DBTransactor, Throwable, Repos] =
+    FlagRepo.live ++ NamespaceRepo.live
 }

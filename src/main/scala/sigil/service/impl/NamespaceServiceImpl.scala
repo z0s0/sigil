@@ -4,13 +4,12 @@ import sigil.api.v1.params.CreateNamespaceParams
 import sigil.model.Namespace
 import sigil.repo.NamespaceRepo
 import sigil.service.NamespaceService
+import zio.Task
 
-import scala.concurrent.Future
-
-final class NamespaceServiceImpl(repo: NamespaceRepo[Future])
-    extends NamespaceService[Future] {
-  override def list: Future[Vector[Namespace]] = repo.list
+final class NamespaceServiceImpl(repo: NamespaceRepo.Service)
+    extends NamespaceService.Service {
+  override def list: Task[Vector[Namespace]] = repo.list
   override def create(
     params: CreateNamespaceParams
-  ): Future[Either[String, Namespace]] = repo.create(params)
+  ): Task[Either[String, Namespace]] = repo.create(params)
 }

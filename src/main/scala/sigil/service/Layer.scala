@@ -1,11 +1,12 @@
 package sigil.service
 
-import sigil.cache.Layer.CacheLayer
-import sigil.repo.Layer.PersistenceLayer
-import zio.{Has, ZLayer}
+import sigil.repo.Layer.Repos
+import sigil.service.FlagService.FlagService
+import sigil.service.NamespaceService.NamespaceService
+import zio.ZLayer
 
 object Layer {
-  type ServiceLayer = Has[Int]
-  val live: ZLayer[CacheLayer with PersistenceLayer, Throwable, ServiceLayer] =
-    ZLayer.succeed(12)
+  type Services = FlagService with NamespaceService
+  val live
+    : ZLayer[Repos, Nothing, Services] = FlagService.live ++ NamespaceService.live
 }
