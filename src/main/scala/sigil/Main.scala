@@ -9,7 +9,7 @@ import zio.interop.catz.implicits.ioTimer
 import zio.interop.catz._
 import zio._
 
-object ZMain extends App {
+object Main extends App {
   override def run(args: List[String]): URIO[zio.ZEnv, ExitCode] = {
     val program = for {
       routes <- ZIO.access[Routes](_.get.route)
