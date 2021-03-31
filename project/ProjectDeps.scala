@@ -2,16 +2,12 @@ import sbt._
 
 object ProjectDeps {
   object versions {
-    val akka = "2.6.10"
-    val `akka-http` = "10.2.1"
     val logback = "1.2.3"
 
     val postgresql = "42.2.15"
     val `flyway-core` = "6.5.5"
     val slf4j = "1.7.30"
     val tapir = "0.17.12"
-    val managementVersion = "1.0.8"
-    val akkaPersistenceJDBC = "3.5.2"
     val doobie = "0.9.0"
     val scalactic = "3.2.0"
     val scalatest = "3.2.0"
@@ -28,8 +24,15 @@ object ProjectDeps {
     val http4s = "0.21.11"
     val testcontainers = "0.38.1"
     val pureConfigVersion = "0.14.0"
+    val newTypes = "0.4.4"
+    val refined = "0.9.22"
   }
 
+  val refinedDeps = List(
+    "eu.timepit" %% "refined" % versions.refined,
+    "eu.timepit" %% "refined-cats" % versions.refined
+  )
+  val newTypes = List("io.estatico" %% "newtype" % versions.newTypes)
   val catsDeps = List("org.typelevel" %% "cats-core" % versions.cats)
 
   val configDeps = List(
@@ -105,5 +108,7 @@ object ProjectDeps {
     dbDeps ++
     zioDeps ++
     configDeps ++
-    http4sDeps
+    http4sDeps ++
+    newTypes ++
+    refinedDeps
 }

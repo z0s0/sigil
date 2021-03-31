@@ -3,7 +3,8 @@ package sigil.service
 import sigil.api.v1.params.{
   CreateFlagParams,
   CreateSegmentParams,
-  CreateVariantParams
+  CreateVariantParams,
+  FlagsListParams
 }
 import sigil.model.{Flag, Segment, Variant}
 import sigil.repo.FlagRepo.FlagRepo
@@ -15,7 +16,7 @@ object FlagService {
   type FlagService = Has[Service]
 
   trait Service {
-    def list: Task[Vector[Flag]]
+    def list(params: List[FlagsListParams]): Task[Vector[Flag]]
     def get(id: Int): Task[Option[Flag]]
     def create(params: CreateFlagParams): Task[Option[Flag]]
 

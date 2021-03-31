@@ -3,9 +3,9 @@ package sigil.api.v1
 import cats.data.Validated
 import io.circe.{Decoder, Encoder, Json}
 import org.http4s.circe._
-import org.http4s.{EntityDecoder, EntityEncoder, HttpRoutes}
+import org.http4s.{EntityDecoder, EntityEncoder, HttpRoutes, QueryParamDecoder}
 import org.http4s.dsl.Http4sDsl
-import sigil.api.v1.params.CreateFlagParams
+import sigil.api.v1.params.{CreateFlagParams, FlagsListParams}
 import sigil.service.FlagService.FlagService
 import zio.{Has, Task, ZLayer}
 import zio.interop.catz._
@@ -38,7 +38,26 @@ object FlagRoutes {
               case None       => NotFound("Flag not found")
             }
 
-          case GET -> Root / "v1" / "flags" => Ok(srv.list)
+          case GET -> Root / "v1" / "flags"
+                :? limit(lim)
+//                  +& offset(offset)
+                  +& enabled(enabled)
+//                  +& deleted(deleted)
+//                  +& descriptionLike(descriptionLike)
+//                  +& tags(tags)
+                  +& key(key) =>
+//                  +& description(description)
+//                  +& preload(preload) =>
+            val params = List(lim, enabled, key)
+              .withFilter {
+                case Some(_) => true
+                case None    => false
+              }
+              .map(_.get)
+
+            println(params)
+
+            Ok(srv.list(params))
 
           case req @ POST -> Root / "v1" / "flags" =>
             req.decode[CreateFlagParams] { params =>
@@ -57,6 +76,36 @@ object FlagRoutes {
               }
             }
         }
+
+        implicit val keyDecoder =
+          QueryParamDecoder[String].map(FlagsListParams.Key)
+        implicit val enabledDecoder =
+          QueryParamDecoder[Boolean].map(FlagsListParams.Enabled)
+        implicit val limitDecoder =
+          QueryParamDecoder[Int].map(FlagsListParams.Limit)
+
+        private object limit
+            extends OptionalQueryParamDecoderMatcher[FlagsListParams.Limit](
+              "limit"
+            )
+        private object description
+            extends OptionalQueryParamDecoderMatcher[String]("description")
+        private object tags
+            extends OptionalQueryParamDecoderMatcher[String]("tags")
+        private object descriptionLike
+            extends OptionalQueryParamDecoderMatcher[String]("description_like")
+        private object key
+            extends OptionalQueryParamDecoderMatcher[FlagsListParams.Key]("key")
+        private object offset
+            extends OptionalQueryParamDecoderMatcher[Int]("offset")
+        private object enabled
+            extends OptionalQueryParamDecoderMatcher[FlagsListParams.Enabled](
+              "enabled"
+            )
+        private object deleted
+            extends OptionalQueryParamDecoderMatcher[Boolean]("deleted")
+        private object preload
+            extends OptionalQueryParamDecoderMatcher[Boolean]("preload")
       }
   }
 }

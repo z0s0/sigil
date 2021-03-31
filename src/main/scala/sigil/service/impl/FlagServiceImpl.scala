@@ -5,7 +5,8 @@ import java.util.UUID
 import sigil.api.v1.params.{
   CreateFlagParams,
   CreateSegmentParams,
-  CreateVariantParams
+  CreateVariantParams,
+  FlagsListParams
 }
 import sigil.model.{Flag, Segment, Variant}
 import sigil.repo.FlagRepo
@@ -13,7 +14,8 @@ import sigil.service.FlagService
 import zio.Task
 
 class FlagServiceImpl(flagRepo: FlagRepo.Service) extends FlagService.Service {
-  override def list: Task[Vector[Flag]] = flagRepo.list
+  override def list(params: List[FlagsListParams]): Task[Vector[Flag]] =
+    flagRepo.list(params)
 
   override def create(params: CreateFlagParams): Task[Option[Flag]] = {
     params.key match {

@@ -10,7 +10,8 @@ import cats.implicits._
 import sigil.api.v1.params.{
   CreateFlagParams,
   CreateSegmentParams,
-  CreateVariantParams
+  CreateVariantParams,
+  FlagsListParams
 }
 import sigil.repo.impl.pg.FlagRepoPGImpl.{FlagRow, VariantRow}
 import zio.Task
@@ -50,9 +51,11 @@ class FlagRepoPGImpl(tr: Transactor[Task]) extends FlagRepo.Service {
   override def get(id: Int): Task[Option[Flag]] =
     SQL.selectFlag(id, preload = true).transact(tr)
 
-  def list: Task[Vector[Flag]] =
+  def list(params: List[FlagsListParams]): Task[Vector[Flag]] = {
+    val baseSQL = sql""
     SQL.list
       .transact(tr)
+  }
 
   override def create(params: CreateFlagParams): Task[Option[Flag]] = {
     SQL
