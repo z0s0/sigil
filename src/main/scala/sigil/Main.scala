@@ -1,14 +1,8 @@
 package sigil
 
-import zio._
+import cats.effect.{ExitCode, IO, IOApp}
 
-object Main extends App {
-  override def run(args: List[String]): URIO[zio.ZEnv, ExitCode] = {
-    val program = for {
-      _ <- UIO(println("zdarova"))
-    } yield ()
-
-    program.exitCode
-  }
-
+object Main extends IOApp {
+  def run(args: List[String]): IO[ExitCode] =
+    IO(println("zdarova")).as(ExitCode.Success)
 }

@@ -1,24 +1,22 @@
 package sigil.repo.impl.pg
 
+import cats.effect.IO
 import sigil.api.v1.params.CreateNamespaceParams
 import sigil.model.Namespace
 import sigil.repo.NamespaceRepo
-
 import doobie.implicits._
 import cats.implicits._
 import doobie.free.connection.ConnectionIO
 import doobie.util.transactor.Transactor
-import zio.Task
-import zio.interop.catz._
 
-final class NamespaceRepoPGImpl(tr: Transactor[Task]) extends NamespaceRepo {
+final class NamespaceRepoPGImpl(tr: Transactor[IO]) extends NamespaceRepo {
 
-  def list: Task[Vector[Namespace]] =
+  def list: IO[Vector[Namespace]] =
     SQL.list.transact(tr)
 
   def create(
     params: CreateNamespaceParams
-  ): Task[Either[String, Namespace]] =
+  ): IO[Either[String, Namespace]] =
     SQL
       .insert(params)
       .map {

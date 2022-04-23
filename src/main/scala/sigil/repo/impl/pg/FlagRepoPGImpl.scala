@@ -1,5 +1,6 @@
 package sigil.repo.impl.pg
 
+import cats.effect.IO
 import doobie.util.transactor.Transactor
 import sigil.model.{Flag, Variant}
 import sigil.repo.FlagRepo
@@ -9,8 +10,6 @@ import doobie.postgres._
 import cats.implicits._
 import sigil.api.v1.params.{CreateFlagParams, CreateSegmentParams, CreateVariantParams}
 import sigil.repo.impl.pg.FlagRepoPGImpl.{FlagRow, VariantRow}
-import zio.Task
-import zio.interop.catz._
 
 object FlagRepoPGImpl {
   final case class VariantRow(id: Int, key: String, attachment: Option[String]) {
@@ -43,16 +42,16 @@ object FlagRepoPGImpl {
   }
 }
 
-final class FlagRepoPGImpl(tr: Transactor[Task]) extends FlagRepo {
-  def get(id: Int): Task[Option[Flag]] =
+final class FlagRepoPGImpl(tr: Transactor[IO]) extends FlagRepo {
+  def get(id: Int): IO[Option[Flag]] =
     SQL.selectFlag(id, preload = true).transact(tr)
 
-  def list: Task[Vector[Flag]] =
+  def list: IO[Vector[Flag]] =
     SQL
       .list
       .transact(tr)
 
-  def create(params: CreateFlagParams): Task[Option[Flag]] = {
+  def create(params: CreateFlagParams): IO[Option[Flag]] = {
     SQL
       .insertFlag(params)
       .flatMap {
@@ -64,7 +63,7 @@ final class FlagRepoPGImpl(tr: Transactor[Task]) extends FlagRepo {
 
   def createVariant(
     params: CreateVariantParams
-  ): Task[Either[String, Variant]] = {
+  ): IO[Either[String, Variant]] = {
     SQL
       .insertVariant(params)
       .flatMap {
@@ -81,14 +80,14 @@ final class FlagRepoPGImpl(tr: Transactor[Task]) extends FlagRepo {
 
   def createSegment(params: CreateSegmentParams) = ???
 
-  def deleteVariant(variantId: Int): Task[Either[String, Int]] =
+  def deleteVariant(variantId: Int): IO[Either[String, Int]] =
     sql"""delete from variants where id = $variantId"""
       .update
       .withUniqueGeneratedKeys[Int]("id")
       .map(Either.right[String, Int](_))
       .transact(tr)
 
-  def deleteSegment(segmentId: Int): Task[Either[String, Int]] =
+  def deleteSegment(segmentId: Int): IO[Either[String, Int]] =
     sql"""delete from segments where id = $segmentId"""
       .update
       .withUniqueGeneratedKeys[Int]("id")
