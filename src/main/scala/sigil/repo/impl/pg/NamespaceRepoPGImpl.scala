@@ -11,7 +11,7 @@ import doobie.util.transactor.Transactor
 import zio.Task
 import zio.interop.catz._
 
-final class NamespaceRepoPGImpl(tr: Transactor[Task]) extends NamespaceRepo.Service {
+final class NamespaceRepoPGImpl(tr: Transactor[Task]) extends NamespaceRepo {
 
   def list: Task[Vector[Namespace]] =
     SQL.list.transact(tr)

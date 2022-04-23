@@ -1,5 +1,3 @@
 package sigil.model.params
 
-final case class DistributionParams(segmentId: Int,
-                                    variantId: Int,
-                                    percent: Int)
+final case class DistributionParams(segmentId: Int, variantId: Int, percent: Int)

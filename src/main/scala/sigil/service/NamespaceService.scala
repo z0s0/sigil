@@ -2,18 +2,19 @@ package sigil.service
 
 import sigil.api.v1.params.CreateNamespaceParams
 import sigil.model.Namespace
-import sigil.repo.NamespaceRepo.NamespaceRepo
-import sigil.service.impl.NamespaceServiceImpl
-import zio.{Has, Task, ZLayer}
+import sigil.repo.NamespaceRepo
+import zio.Task
+
+trait NamespaceService {
+  def list: Task[Vector[Namespace]]
+  def create(params: CreateNamespaceParams): Task[Either[String, Namespace]]
+}
 
 object NamespaceService {
-  type NamespaceService = Has[Service]
+  def of(repo: NamespaceRepo): NamespaceService = new NamespaceService {
+    def list: Task[Vector[Namespace]] = repo.list
 
-  trait Service {
-    def list: Task[Vector[Namespace]]
-    def create(params: CreateNamespaceParams): Task[Either[String, Namespace]]
+    def create(params: CreateNamespaceParams): Task[Either[String, Namespace]] = repo.create(params)
   }
 
-  val live: ZLayer[NamespaceRepo, Nothing, NamespaceService] =
-    ZLayer.fromService(new NamespaceServiceImpl(_))
 }

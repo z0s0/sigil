@@ -2,9 +2,11 @@ package sigil
 
 import org.flywaydb.core.Flyway
 import sigil.config.DbConfig
+import zio.RIO
+import zio.blocking.{Blocking, effectBlocking}
 
-object Migrations {
-  def run(dbConfig: DbConfig): Unit = {
+object RunMigrations {
+  def apply(dbConfig: DbConfig): RIO[Blocking, Int] = effectBlocking {
     Flyway
       .configure()
       .dataSource(dbConfig.url, dbConfig.username, dbConfig.password)

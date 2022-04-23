@@ -26,7 +26,13 @@ object FlagRepoPGImpl {
     fNotes: Option[String],
     variants: Vector[VariantRow],
   )
-  final case class FlagRow(id: Int, key: String, description: String, enabled: Option[Boolean], notes: Option[String]) {
+  final case class FlagRow(
+    id: Int,
+    key: String,
+    description: String,
+    enabled: Option[Boolean],
+    notes: Option[String]
+  ) {
     def toFlag: Flag = Flag(
       id = id,
       key = key,
@@ -37,8 +43,8 @@ object FlagRepoPGImpl {
   }
 }
 
-class FlagRepoPGImpl(tr: Transactor[Task]) extends FlagRepo.Service {
-  override def get(id: Int): Task[Option[Flag]] =
+final class FlagRepoPGImpl(tr: Transactor[Task]) extends FlagRepo {
+  def get(id: Int): Task[Option[Flag]] =
     SQL.selectFlag(id, preload = true).transact(tr)
 
   def list: Task[Vector[Flag]] =
@@ -46,7 +52,7 @@ class FlagRepoPGImpl(tr: Transactor[Task]) extends FlagRepo.Service {
       .list
       .transact(tr)
 
-  override def create(params: CreateFlagParams): Task[Option[Flag]] = {
+  def create(params: CreateFlagParams): Task[Option[Flag]] = {
     SQL
       .insertFlag(params)
       .flatMap {
@@ -56,7 +62,7 @@ class FlagRepoPGImpl(tr: Transactor[Task]) extends FlagRepo.Service {
       .transact(tr)
   }
 
-  override def createVariant(
+  def createVariant(
     params: CreateVariantParams
   ): Task[Either[String, Variant]] = {
     SQL
@@ -73,16 +79,16 @@ class FlagRepoPGImpl(tr: Transactor[Task]) extends FlagRepo.Service {
       .transact(tr)
   }
 
-  override def createSegment(params: CreateSegmentParams) = ???
+  def createSegment(params: CreateSegmentParams) = ???
 
-  override def deleteVariant(variantId: Int): Task[Either[String, Int]] =
+  def deleteVariant(variantId: Int): Task[Either[String, Int]] =
     sql"""delete from variants where id = $variantId"""
       .update
       .withUniqueGeneratedKeys[Int]("id")
       .map(Either.right[String, Int](_))
       .transact(tr)
 
-  override def deleteSegment(segmentId: Int): Task[Either[String, Int]] =
+  def deleteSegment(segmentId: Int): Task[Either[String, Int]] =
     sql"""delete from segments where id = $segmentId"""
       .update
       .withUniqueGeneratedKeys[Int]("id")
@@ -90,7 +96,7 @@ class FlagRepoPGImpl(tr: Transactor[Task]) extends FlagRepo.Service {
       .transact(tr)
 
   object SQL {
-    def list: ConnectionIO[Vector[Flag]] =
+    val list: ConnectionIO[Vector[Flag]] =
       sql"""
            select id, key, description, enabled, notes from flags
          """

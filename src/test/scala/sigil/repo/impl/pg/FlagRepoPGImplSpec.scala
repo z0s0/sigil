@@ -2,4 +2,4 @@ package sigil.repo.impl.pg
 
 import org.scalatest.freespec.AnyFreeSpec
 
-class FlagRepoPGImplSpec extends AnyFreeSpec {}
+final class FlagRepoPGImplSpec extends AnyFreeSpec {}
