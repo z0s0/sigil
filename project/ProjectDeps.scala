@@ -22,6 +22,7 @@ object ProjectDeps {
     val pureConfigVersion = "0.17.1"
     val circeVsn = "0.14.1"
     val ceVsn = "3.3.11"
+    val tapir = "1.0.0-M7"
   }
 
   val catsDeps = List(
@@ -73,20 +74,17 @@ object ProjectDeps {
     "org.http4s" %% "http4s-dsl" % versions.http4s
   )
 
-//  val tapirDeps = Seq(
-//    "com.softwaremill.sttp.tapir" %% "tapir-zio" % versions.tapir,
-//    "com.softwaremill.sttp.tapir" %% "tapir-zio-http4s-server" % versions.tapir,
-//    "com.softwaremill.sttp.tapir" %% "tapir-json-circe" % versions.tapir,
-//    "com.softwaremill.sttp.tapir" %% "tapir-core" % versions.tapir,
-//    "com.softwaremill.sttp.tapir" %% "tapir-json-play" % versions.tapir,
-//    "com.softwaremill.sttp.tapir" %% "tapir-openapi-docs" % versions.tapir,
-//    "com.softwaremill.sttp.tapir" %% "tapir-openapi-circe-yaml" % versions.tapir,
-//    "com.softwaremill.sttp.tapir" %% "tapir-swagger-ui-akka-http" % versions.tapir
-//  )
+  val tapirDeps = Seq(
+    "com.softwaremill.sttp.tapir" %% "tapir-json-circe" % versions.tapir,
+    "com.softwaremill.sttp.tapir" %% "tapir-core" % versions.tapir,
+    "com.softwaremill.sttp.tapir" %% "tapir-openapi-docs" % versions.tapir,
+    "com.softwaremill.sttp.tapir" %% "tapir-openapi-circe-yaml" % versions.tapir
+  )
 
   val deps = logDeps ++
     testDeps ++
     catsDeps ++
+    tapirDeps ++
     doobieDeps ++
     circeDeps ++
     dbDeps ++
