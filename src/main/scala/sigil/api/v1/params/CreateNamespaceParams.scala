@@ -4,7 +4,7 @@ import cats.data.Validated
 import sigil.api.ApiParams
 
 final case class CreateNamespaceParams(name: String) extends ApiParams {
-  def isValid: Validated[List[String], String] =
+  def validate: Validated[List[String], String] =
     Validated.cond(
       name.nonEmpty,
       "ok",

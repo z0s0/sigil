@@ -7,7 +7,7 @@ import cats.instances.string._
 
 final case class CreateSegmentParams(flagId: Int, description: String, rolloutPpm: Int)
     extends ApiParams {
-  def isValid: Validated[List[String], String] =
+  def validate: Validated[List[String], String] =
     Validated
       .cond(description.nonEmpty, "ok", List("description must be present"))
       .combine(

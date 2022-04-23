@@ -7,6 +7,6 @@ import sigil.api.ApiParams
 @JsonCodec
 final case class CreateVariantParams(flagId: Int, key: String, attachment: Option[String])
     extends ApiParams {
-  def isValid: Validated[List[String], String] =
+  def validate: Validated[List[String], String] =
     Validated.cond(key.length > 0, "ok", List("key must be provided"))
 }

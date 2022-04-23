@@ -10,7 +10,7 @@ import sigil.api.ApiParams
   key: Option[String],
   template: Option[String]
 ) extends ApiParams {
-  def isValid: Validated[List[String], String] =
+  def validate: Validated[List[String], String] =
     Validated.cond(
       description.length > 0,
       "ok",

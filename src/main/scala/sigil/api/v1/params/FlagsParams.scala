@@ -14,7 +14,7 @@ final case class FlagsParams(
   preload: Option[Boolean],
   deleted: Option[Boolean]
 ) extends ApiParams {
-  def isValid: Validated[List[String], String] = {
+  def validate: Validated[List[String], String] = {
     Validated.cond(
       lim.getOrElse(0) >= 0,
       "ok",

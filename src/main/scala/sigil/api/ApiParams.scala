@@ -7,7 +7,7 @@ import io.circe.syntax.EncoderOps
 import sigil.api.v1.params._
 
 abstract class ApiParams {
-  def isValid: Validated[List[String], String]
+  def validate: Validated[List[String], String]
 
   def leftToJson(errors: List[String]): Json = errors.asJson
 }
