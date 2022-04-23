@@ -11,12 +11,12 @@ import doobie.util.transactor.Transactor
 import zio.Task
 import zio.interop.catz._
 
-class NamespaceRepoPGImpl(tr: Transactor[Task]) extends NamespaceRepo.Service {
+final class NamespaceRepoPGImpl(tr: Transactor[Task]) extends NamespaceRepo.Service {
 
-  override def list: Task[Vector[Namespace]] =
+  def list: Task[Vector[Namespace]] =
     SQL.list.transact(tr)
 
-  override def create(
+  def create(
     params: CreateNamespaceParams
   ): Task[Either[String, Namespace]] =
     SQL
@@ -50,7 +50,8 @@ class NamespaceRepoPGImpl(tr: Transactor[Task]) extends NamespaceRepo.Service {
     def insert(params: CreateNamespaceParams): ConnectionIO[Option[Int]] =
       sql"""
            insert into namespaces(name) values(${params.name})
-         """.update
+         """
+        .update
         .withGeneratedKeys[Int]("id")
         .compile
         .last

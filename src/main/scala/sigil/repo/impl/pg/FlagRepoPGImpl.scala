@@ -7,35 +7,26 @@ import doobie._
 import doobie.implicits._
 import doobie.postgres._
 import cats.implicits._
-import sigil.api.v1.params.{
-  CreateFlagParams,
-  CreateSegmentParams,
-  CreateVariantParams
-}
+import sigil.api.v1.params.{CreateFlagParams, CreateSegmentParams, CreateVariantParams}
 import sigil.repo.impl.pg.FlagRepoPGImpl.{FlagRow, VariantRow}
 import zio.Task
 import zio.interop.catz._
 
 object FlagRepoPGImpl {
-  final case class VariantRow(id: Int,
-                              key: String,
-                              attachment: Option[String]) {
+  final case class VariantRow(id: Int, key: String, attachment: Option[String]) {
     def toVariant: Variant =
       Variant(id = id, key = key, attachment = attachment)
   }
 
-  final case class FlagWithPreloadsRow(fId: Int,
-                                       fKey: String,
-                                       fDesc: String,
-                                       fEnabled: Option[Boolean],
-                                       fNotes: Option[String],
-                                       variants: Vector[VariantRow],
+  final case class FlagWithPreloadsRow(
+    fId: Int,
+    fKey: String,
+    fDesc: String,
+    fEnabled: Option[Boolean],
+    fNotes: Option[String],
+    variants: Vector[VariantRow],
   )
-  final case class FlagRow(id: Int,
-                           key: String,
-                           description: String,
-                           enabled: Option[Boolean],
-                           notes: Option[String]) {
+  final case class FlagRow(id: Int, key: String, description: String, enabled: Option[Boolean], notes: Option[String]) {
     def toFlag: Flag = Flag(
       id = id,
       key = key,
@@ -51,7 +42,8 @@ class FlagRepoPGImpl(tr: Transactor[Task]) extends FlagRepo.Service {
     SQL.selectFlag(id, preload = true).transact(tr)
 
   def list: Task[Vector[Flag]] =
-    SQL.list
+    SQL
+      .list
       .transact(tr)
 
   override def create(params: CreateFlagParams): Task[Option[Flag]] = {
@@ -84,13 +76,15 @@ class FlagRepoPGImpl(tr: Transactor[Task]) extends FlagRepo.Service {
   override def createSegment(params: CreateSegmentParams) = ???
 
   override def deleteVariant(variantId: Int): Task[Either[String, Int]] =
-    sql"""delete from variants where id = $variantId""".update
+    sql"""delete from variants where id = $variantId"""
+      .update
       .withUniqueGeneratedKeys[Int]("id")
       .map(Either.right[String, Int](_))
       .transact(tr)
 
   override def deleteSegment(segmentId: Int): Task[Either[String, Int]] =
-    sql"""delete from segments where id = $segmentId""".update
+    sql"""delete from segments where id = $segmentId"""
+      .update
       .withUniqueGeneratedKeys[Int]("id")
       .map(Either.right[String, Int](_))
       .transact(tr)
@@ -127,7 +121,8 @@ class FlagRepoPGImpl(tr: Transactor[Task]) extends FlagRepo.Service {
       sql"""
            insert into flags(description, key, namespace_id)
            values (${params.description}, ${params.key}, ${params.namespaceId})
-         """.update
+         """
+        .update
         .withUniqueGeneratedKeys[Int]("id")
         .attemptSqlState
 
@@ -135,7 +130,8 @@ class FlagRepoPGImpl(tr: Transactor[Task]) extends FlagRepo.Service {
       sql"""
            insert into variants(flag_id, key, attachment)
            values (${params.flagId}, ${params.key}, ${params.attachment})
-         """.update
+         """
+        .update
         .withUniqueGeneratedKeys[Int]("id")
         .attemptSomeSqlState {
           case sqlstate.class23.UNIQUE_VIOLATION => "Key must be unique"
