@@ -4,7 +4,7 @@ import cats.data.Validated
 import io.circe.generic.JsonCodec
 import sigil.api.ApiParams
 
-@JsonCodec case class CreateNamespaceParams(name: String) extends ApiParams {
+@JsonCodec final case class CreateNamespaceParams(name: String) extends ApiParams {
   def validate: Validated[List[String], String] =
     Validated.cond(
       name.nonEmpty,

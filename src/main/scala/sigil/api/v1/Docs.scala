@@ -7,19 +7,19 @@ import sttp.model.StatusCode
 import sttp.tapir.docs.openapi.OpenAPIDocsInterpreter
 import sttp.tapir.json.circe.jsonBody
 import sttp.tapir.generic.auto._
-import sttp.tapir.{AnyEndpoint, endpoint, statusCode}
+import sttp.tapir._
 import sttp.tapir.openapi.circe.yaml._
 
 object Docs {
   object Flags {
     val list = endpoint
       .get
-      .in("v1/flags")
+      .in("v1" / "flags")
       .out(jsonBody[Vector[Flag]])
 
     val create = endpoint
       .post
-      .in("v1/flags")
+      .in("v1" / "flags")
       .in(jsonBody[CreateFlagParams])
       .out(jsonBody[Flag])
       .errorOut(jsonBody[ClientError])
@@ -29,12 +29,12 @@ object Docs {
   object Namespaces {
     val list = endpoint
       .get
-      .in("v1/namespaces")
+      .in("v1" / "namespaces")
       .out(jsonBody[Vector[Namespace]])
 
     val create = endpoint
       .post
-      .in("v1/namespaces")
+      .in("v1" / "namespaces")
       .in(jsonBody[CreateNamespaceParams])
       .out(jsonBody[Namespace])
       .errorOut(statusCode(StatusCode.BadRequest))
