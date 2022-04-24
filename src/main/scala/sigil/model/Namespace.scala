@@ -1,8 +1,4 @@
 package sigil.model
-import io.circe.generic.semiauto.deriveEncoder
-import io.circe.Encoder
+import io.circe.generic.JsonCodec
 
-object Namespace {
-  implicit val jsonEncoder: Encoder[Namespace] = deriveEncoder
-}
-final case class Namespace(id: Int, name: String)
+@JsonCodec case class Namespace(id: Int, name: String)

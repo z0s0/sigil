@@ -5,12 +5,15 @@ import cats.effect.{ExitCode, IO}
 import cats.implicits.toSemigroupKOps
 import org.http4s.blaze.server.BlazeServerBuilder
 import org.http4s.server.Router
-import sigil.api.v1.{FlagRoutes, NamespaceRoutes}
+import sigil.api.v1.{Docs, FlagRoutes, NamespaceRoutes}
 import sigil.config.{Config, DBConnection}
 import sigil.pub.SupportedPubChannel
 import sigil.repo.{FlagRepo, NamespaceRepo, SupportedStorage}
 import sigil.service.{FlagService, NamespaceService}
 import org.http4s.syntax.kleisli._
+import sttp.tapir.server.ServerEndpoint
+import sttp.tapir.server.http4s.Http4sServerInterpreter
+import sttp.tapir.swagger.bundle.SwaggerInterpreter
 
 object Main {
   def main(args: Array[String]): Unit = {
@@ -27,9 +30,11 @@ object Main {
       flagService = FlagService.of(flagRepo)
       namespaceRepo = NamespaceRepo.of(transactor, storage)
       namespaceService = NamespaceService.of(namespaceRepo)
+      swaggerEndpoints = SwaggerInterpreter().fromEndpoints[IO](Docs.docs, "Sigil", "1.0")
+      routes = new FlagRoutes(flagService).list ++ new NamespaceRoutes(namespaceService).list
+      interpreter = Http4sServerInterpreter[IO]().toRoutes(routes)
 
-      routes = FlagRoutes.of(flagService) <+> NamespaceRoutes.of(namespaceService)
-      router = Router("/" -> routes).orNotFound
+      router = Router("/" -> interpreter).orNotFound
       _ <- BlazeServerBuilder[IO]
         .bindHttp(config.apiConfig.port)
         .withHttpApp(router)
