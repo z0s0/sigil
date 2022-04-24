@@ -3,30 +3,23 @@ package sigil.repo.impl.pg
 import cats.effect.IO
 import sigil.api.v1.params.CreateNamespaceParams
 import sigil.model.Namespace
-import sigil.repo.NamespaceRepo
+import sigil.repo.{DbError, MutationError, NamespaceRepo}
+import DbError.ConnectionIOOps
+import cats.data.EitherT
 import doobie.implicits._
-import cats.implicits._
-import doobie.free.connection.ConnectionIO
+import doobie.ConnectionIO
 import doobie.util.transactor.Transactor
 
 final class NamespaceRepoPGImpl(tr: Transactor[IO]) extends NamespaceRepo {
 
-  def list: IO[Vector[Namespace]] =
-    SQL.list.transact(tr)
+  def list: IO[Vector[Namespace]] = SQL.list.transact(tr)
 
   def create(
     params: CreateNamespaceParams
-  ): IO[Either[String, Namespace]] =
-    SQL
-      .insert(params)
-      .map {
-        case Some(id) =>
-          Either.right[String, Namespace](
-            Namespace(id = id, name = params.name)
-          )
-        case None =>
-          Either.left[String, Namespace]("Insertion error")
-      }
+  ): IO[Either[MutationError, Namespace]] =
+    EitherT(SQL.insert(params))
+      .map(id => Namespace(id, params.name))
+      .value
       .transact(tr)
 
   object SQL {
@@ -45,13 +38,12 @@ final class NamespaceRepoPGImpl(tr: Transactor[IO]) extends NamespaceRepo {
         .query[Namespace]
         .to[Vector]
 
-    def insert(params: CreateNamespaceParams): ConnectionIO[Option[Int]] =
+    def insert(params: CreateNamespaceParams): ConnectionIO[Either[MutationError, Int]] =
       sql"""
            insert into namespaces(name) values(${params.name})
          """
         .update
-        .withGeneratedKeys[Int]("id")
-        .compile
-        .last
+        .withUniqueGeneratedKeys[Int]("id")
+        .withMutationErrorsHandling
   }
 }
