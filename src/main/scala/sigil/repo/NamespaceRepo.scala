@@ -8,9 +8,10 @@ import sigil.repo.impl.pg.NamespaceRepoPGImpl
 
 trait NamespaceRepo {
   def list: IO[Vector[Namespace]]
-  def create(params: CreateNamespaceParams): IO[Either[String, Namespace]]
+  def create(params: CreateNamespaceParams): IO[Either[MutationError, Namespace]]
 }
 
 object NamespaceRepo {
-  def of(transactor: Transactor[IO]): NamespaceRepo = new NamespaceRepoPGImpl(transactor)
+  def of(transactor: Transactor[IO], storage: SupportedStorage): NamespaceRepo =
+    storage match { case PG => new NamespaceRepoPGImpl(transactor) }
 }
