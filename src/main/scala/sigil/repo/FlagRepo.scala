@@ -9,19 +9,22 @@ import sigil.repo.impl.pg.FlagRepoPGImpl
 trait FlagRepo {
   def list: IO[Vector[Flag]]
   def get(id: Int): IO[Option[Flag]]
-  def create(params: CreateFlagParams): IO[Option[Flag]]
+  def create(params: CreateFlagParams): IO[Either[MutationError, Flag]]
 
   def createVariant(
     params: CreateVariantParams
-  ): IO[Either[String, Variant]]
+  ): IO[Either[MutationError, Variant]]
   def createSegment(
     params: CreateSegmentParams
-  ): IO[Either[String, Segment]]
+  ): IO[Either[MutationError, Segment]]
 
-  def deleteVariant(variantId: Int): IO[Either[String, Int]]
-  def deleteSegment(segmentId: Int): IO[Either[String, Int]]
+  def deleteVariant(variantId: Int): IO[Either[MutationError, Unit]]
+  def deleteSegment(segmentId: Int): IO[Either[MutationError, Unit]]
 }
 
 object FlagRepo {
-  def of(transactor: Transactor[IO]) = new FlagRepoPGImpl(transactor)
+  def of(transactor: Transactor[IO], supportedStorage: SupportedStorage): FlagRepo =
+    supportedStorage match {
+      case PG => new FlagRepoPGImpl(transactor)
+    }
 }
