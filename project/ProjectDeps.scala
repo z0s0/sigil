@@ -78,6 +78,8 @@ object ProjectDeps {
     "com.softwaremill.sttp.tapir" %% "tapir-json-circe" % versions.tapir,
     "com.softwaremill.sttp.tapir" %% "tapir-core" % versions.tapir,
     "com.softwaremill.sttp.tapir" %% "tapir-openapi-docs" % versions.tapir,
+    "com.softwaremill.sttp.tapir" %% "tapir-http4s-server" % versions.tapir,
+    "com.softwaremill.sttp.tapir" %% "tapir-swagger-ui-bundle" % versions.tapir,
     "com.softwaremill.sttp.tapir" %% "tapir-openapi-circe-yaml" % versions.tapir
   )
 
