@@ -2,17 +2,15 @@ package sigil.api.v1
 
 import cats.data.Validated
 import cats.effect.IO
-import io.circe.{Decoder, Encoder, Json}
-import org.http4s.circe._
-import org.http4s.{EntityDecoder, EntityEncoder, HttpRoutes}
+import io.circe.Json
+import org.http4s.HttpRoutes
 import sigil.api.v1.params.CreateFlagParams
 import sigil.service.FlagService
+import sigil.repo.DbError._
+import sigil.api.JsonOps._
 import org.http4s.dsl.io._
 
 object FlagRoutes {
-  implicit def circeJsonDecoder[A: Decoder]: EntityDecoder[IO, A] = jsonOf[IO, A]
-  implicit def circeJsonEncoder[A: Encoder]: EntityEncoder[IO, A] = jsonEncoderOf[IO, A]
-
   def of(srv: FlagService): HttpRoutes[IO] = HttpRoutes.of[IO] {
     case GET -> Root / "v1" / "flags" / IntVar(id) =>
       srv.get(id).flatMap {
@@ -27,10 +25,8 @@ object FlagRoutes {
         params.validate match {
           case Validated.Valid(_) =>
             srv.create(params).flatMap {
-              case Some(flag) =>
-                Created(flag)
-              case None =>
-                UnprocessableEntity()
+              case Left(value)  => BadRequest(value)
+              case Right(value) => Ok(value)
             }
           case Validated.Invalid(errors) =>
             UnprocessableEntity(

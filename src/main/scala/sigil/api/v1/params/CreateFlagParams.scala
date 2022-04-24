@@ -12,7 +12,7 @@ import sigil.api.ApiParams
 ) extends ApiParams {
   def validate: Validated[List[String], String] =
     Validated.cond(
-      description.length > 0,
+      description.nonEmpty,
       "ok",
       List("description must be present")
     )
