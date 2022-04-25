@@ -2,9 +2,11 @@ package sigil.api.v1.params
 
 import cats.data.Validated
 import sigil.api.ApiParams
+import sttp.tapir.EndpointIO.annotations.params
 
-final case class FlagsParams(
-  lim: Option[Int],
+@params
+final case class FindFlagsParams(
+  limit: Option[Int],
   offset: Option[Int],
   enabled: Option[Boolean],
   description: Option[String],
@@ -16,7 +18,7 @@ final case class FlagsParams(
 ) extends ApiParams {
   def validate: Validated[List[String], String] = {
     Validated.cond(
-      lim.getOrElse(0) >= 0,
+      limit.getOrElse(0) >= 0,
       "ok",
       List("limit must not be negative")
     )
