@@ -38,6 +38,13 @@ object Docs {
       .out(jsonBody[Flag])
       .errorOut(jsonBody[ClientError])
       .errorOut(statusCode(StatusCode.BadRequest))
+
+    val get = endpoint
+      .get
+      .in("v1" / "flags" / path[Int])
+      .out(jsonBody[Flag])
+      .errorOut(jsonBody[ClientError])
+      .errorOut(statusCode(StatusCode.NotFound))
   }
 
   object Namespaces {

@@ -28,6 +28,13 @@ CREATE TABLE flags(
 );
 CREATE INDEX ON flags(deleted_at);
 
+CREATE TABLE snapshots(
+  id serial primary key,
+  flag_id integer not null references flags(id),
+  updated_by text,
+  data jsonb not null
+);
+
 CREATE TABLE tags(
   id serial primary key,
   created_at TIMESTAMP WITH TIME ZONE NOT NULL default (current_timestamp at time zone 'UTC'),
@@ -51,7 +58,7 @@ CREATE TABLE variants(
   updated_at TIMESTAMP WITH TIME ZONE NOT NULL default (current_timestamp at time zone 'UTC'),
   deleted_at TIMESTAMP WITH TIME ZONE,
   flag_id INTEGER NOT NULL REFERENCES flags(id),
-  key text,
+  key text NOT NULL,
   attachment text
 );
 

@@ -1,10 +1,10 @@
 package sigil.repo.impl.pg
 
-import cats.data.{EitherT, OptionT}
+import cats.data.EitherT
 import cats.effect.IO
 import doobie.util.transactor.Transactor
-import sigil.model.{Flag, Variant}
-import sigil.repo.{DbError, FlagRepo, Impossible, MutationError, NotFound, UniquenessViolation}
+import sigil.model.{Flag, Segment, Variant}
+import sigil.repo.{FlagRepo, MutationError}
 import doobie._
 import doobie.implicits._
 import cats.implicits._
@@ -14,7 +14,7 @@ import sigil.api.v1.params.{
   CreateVariantParams,
   FindFlagsParams
 }
-import sigil.repo.impl.pg.FlagRepoPGImpl.{FlagRow, VariantRow}
+import sigil.repo.impl.pg.FlagRepoPGImpl._
 import sigil.repo.DbError.ConnectionIOOps
 
 object FlagRepoPGImpl {
@@ -23,29 +23,99 @@ object FlagRepoPGImpl {
       Variant(id = id, key = key, attachment = attachment)
   }
 
-  final case class FlagWithPreloadsRow(
-    fId: Int,
-    fKey: String,
-    fDesc: String,
-    fEnabled: Option[Boolean],
-    fNotes: Option[String],
-    variants: Vector[VariantRow],
-  )
-  final case class FlagRow(
+  final case class TagRow()
+
+  sealed trait FlagRow
+
+  // TODO optimize with sql arrays
+  def preloadsToFlag(flagRows: Vector[FlagRowWithPreloads]): Option[Flag] =
+    if (flagRows.isEmpty) None
+    else {
+      val firstRow = flagRows.head
+      val (variants, segments) = flagRows.foldLeft((Vector.empty[Variant], Vector.empty[Segment])) {
+        case (acc, row) =>
+          (
+            acc._1 :+ Variant(
+              id = row.variantId,
+              key = row.variantKey,
+              attachment = row.variantAttachment
+            ),
+            acc._2 :+ Segment(
+              id = row.segmentId,
+              description = row.segmentDescription,
+              rank = row.segmentRank,
+              rollOut = row.segmentRollout
+            )
+          )
+      }
+
+      Some(
+        Flag(
+          id = firstRow.id,
+          key = firstRow.key,
+          description = firstRow.description,
+          createdBy = firstRow.createdBy,
+          updatedBy = firstRow.updatedBy,
+          enabled = firstRow.enabled,
+          segments = segments.distinctBy(_.id),
+          variants = variants.distinctBy(_.key),
+          tags = Vector(),
+          snapshotId = firstRow.snapshotId,
+          notes = firstRow.notes,
+          dataRecordsEnabled = firstRow.dataRecordsEnabled,
+          entityType = firstRow.entityType
+        )
+      )
+    }
+
+  final case class PlainFlagRow(
     id: Int,
     key: String,
     description: String,
-    enabled: Option[Boolean],
-    notes: Option[String]
-  ) {
+    createdBy: String,
+    updatedBy: String,
+    enabled: Boolean,
+    snapshotId: Int,
+    notes: Option[String],
+    dataRecordsEnabled: Boolean,
+    entityType: String,
+  ) extends FlagRow {
     def toFlag: Flag = Flag(
       id = id,
       key = key,
       description = description,
-      enabled = enabled.getOrElse(false),
-      notes = notes
+      createdBy = createdBy,
+      updatedBy = updatedBy,
+      enabled = enabled,
+      segments = Vector(),
+      variants = Vector(),
+      tags = Vector(),
+      snapshotId = snapshotId,
+      notes = notes,
+      dataRecordsEnabled = dataRecordsEnabled,
+      entityType = entityType,
     )
   }
+
+  final case class FlagRowWithPreloads(
+    id: Int,
+    key: String,
+    description: String,
+    createdBy: String,
+    updatedBy: String,
+    enabled: Boolean,
+    snapshotId: Int,
+    notes: Option[String],
+    dataRecordsEnabled: Boolean,
+    entityType: String,
+    variantId: Int,
+    variantKey: String,
+    variantAttachment: Option[String],
+    segmentId: Int,
+    segmentDescription: String,
+    segmentRank: Int,
+    segmentRollout: Int
+  ) extends FlagRow
 }
 
 final class FlagRepoPGImpl(tr: Transactor[IO]) extends FlagRepo {
@@ -93,7 +163,19 @@ final class FlagRepoPGImpl(tr: Transactor[IO]) extends FlagRepo {
   object SQL {
     // TODO preload, tags
     def list(params: FindFlagsParams): ConnectionIO[Vector[Flag]] = {
-      var sql = sql"select id, key, description, enabled, notes from flags WHERE 1 = 1 "
+      var sql =
+        sql"""select 
+          id,
+          key,
+          description,
+          created_by,
+          updated_by,
+          enabled,
+          snapshot_id,
+          notes,
+          data_records_enabled,
+          entity_type
+        from flags WHERE 1 = 1 """
 
       sql = params.enabled.fold(sql)(enabled => sql ++ fr"AND enabled = ${enabled} ")
       sql = (params.description, params.descriptionLike) match {
@@ -109,23 +191,49 @@ final class FlagRepoPGImpl(tr: Transactor[IO]) extends FlagRepo {
       sql = params.offset.fold(sql)(offset => sql ++ fr"OFFSET ${offset}")
 
       sql
-        .query[FlagRow]
-        .map { a =>
-          println(a)
-          a
-        }
+        .query[PlainFlagRow]
         .map(_.toFlag)
         .to[Vector]
     }
 
-    def selectFlag(id: Int, preload: Boolean): ConnectionIO[Option[Flag]] =
-      sql"""
+    def selectFlag(id: Int, preload: Boolean): ConnectionIO[Option[Flag]] = {
+      if (preload) {
+        sql"""
+          select 
+            f.id,
+            f.key,
+            f.description,
+            f.created_by,
+            f.updated_by,
+            f.enabled,
+            f.snapshot_id, 
+            f.notes, 
+            f.data_records_enabled,
+            f.entity_type,
+            v.id,
+            v.key,
+            v.attachment,
+            s.id,
+            s.description,
+            s.rank,
+            s.rollout_ppm
+          FROM flags f 
+          JOIN variants v on v.flag_id = f.id  
+          JOIN segments s on s.flag_id = f.id
+          WHERE f.id = ${id}
+        """
+          .query[FlagRowWithPreloads]
+          .to[Vector]
+          .map(preloadsToFlag)
+      } else
+        sql"""
            select id, key, description, enabled, notes from flags
            where id = $id
          """
-        .query[FlagRow]
-        .map(_.toFlag)
-        .option
+          .query[PlainFlagRow]
+          .map(_.toFlag)
+          .option
+    }
 
     def selectVariant(id: Int): ConnectionIO[Option[Variant]] =
       sql"""

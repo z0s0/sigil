@@ -1,13 +1,9 @@
 package sigil
 
-import cats.effect.IO
-import sigil.api.v1.{Docs, FlagRoutes, NamespaceRoutes}
 import sigil.config.{Config, DBConnection}
 import sigil.pub.SupportedPubChannel
 import sigil.repo.{FlagRepo, NamespaceRepo, SupportedStorage}
 import sigil.service.{FlagService, NamespaceService}
-import sttp.tapir.server.http4s.Http4sServerInterpreter
-import sttp.tapir.swagger.bundle.SwaggerInterpreter
 
 object Bootstrap {
   final case class Services(flagService: FlagService, namespaceService: NamespaceService)

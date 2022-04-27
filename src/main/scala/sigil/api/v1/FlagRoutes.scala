@@ -21,5 +21,12 @@ final class FlagRoutes(srv: FlagService) {
     }
   }
 
-  val list = List(listLogic, createLogic)
+  private val getLogic = Docs.Flags.get.serverLogic { id =>
+    srv.get(id).map {
+      case Some(flag) => flag.asRight[ClientError]
+      case None       => ClientError(s"flag with id ${id} not found").asLeft[Flag]
+    }
+  }
+
+  val list = List(listLogic, createLogic, getLogic)
 }

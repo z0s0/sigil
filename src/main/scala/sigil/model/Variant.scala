@@ -1,10 +1,6 @@
 package sigil.model
 
-import io.circe.Encoder
-import io.circe.generic.semiauto.deriveEncoder
+import io.circe.generic.JsonCodec
 
-object Variant {
-  implicit val jsonEncoder: Encoder[Variant] = deriveEncoder
-}
-
+@JsonCodec
 final case class Variant(id: Int, key: String, attachment: Option[String])
