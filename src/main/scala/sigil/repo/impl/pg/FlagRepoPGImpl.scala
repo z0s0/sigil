@@ -8,7 +8,12 @@ import sigil.repo.{DbError, FlagRepo, Impossible, MutationError, NotFound, Uniqu
 import doobie._
 import doobie.implicits._
 import cats.implicits._
-import sigil.api.v1.params.{CreateFlagParams, CreateSegmentParams, CreateVariantParams}
+import sigil.api.v1.params.{
+  CreateFlagParams,
+  CreateSegmentParams,
+  CreateVariantParams,
+  FindFlagsParams
+}
 import sigil.repo.impl.pg.FlagRepoPGImpl.{FlagRow, VariantRow}
 import sigil.repo.DbError.ConnectionIOOps
 
@@ -46,7 +51,7 @@ object FlagRepoPGImpl {
 final class FlagRepoPGImpl(tr: Transactor[IO]) extends FlagRepo {
   def get(id: Int): IO[Option[Flag]] = SQL.selectFlag(id, preload = true).transact(tr)
 
-  def list: IO[Vector[Flag]] = SQL.list.transact(tr)
+  def list(params: FindFlagsParams): IO[Vector[Flag]] = SQL.list(params).transact(tr)
 
   def create(params: CreateFlagParams): IO[Either[MutationError, Flag]] =
     (for {
@@ -86,13 +91,32 @@ final class FlagRepoPGImpl(tr: Transactor[IO]) extends FlagRepo {
       .transact(tr)
 
   object SQL {
-    val list: ConnectionIO[Vector[Flag]] =
-      sql"""
-           select id, key, description, enabled, notes from flags
-         """
+    // TODO preload, tags
+    def list(params: FindFlagsParams): ConnectionIO[Vector[Flag]] = {
+      var sql = sql"select id, key, description, enabled, notes from flags WHERE 1 = 1 "
+
+      sql = params.enabled.fold(sql)(enabled => sql ++ fr"AND enabled = ${enabled} ")
+      sql = (params.description, params.descriptionLike) match {
+        case (Some(desc), _)        => sql ++ fr"AND description = ${desc} "
+        case (None, Some(descLike)) => sql ++ fr"AND description LIKE ${descLike ++ "%"} "
+        case _                      => sql
+      }
+
+      sql = params.deleted.fold(sql)(deleted => sql ++ fr"AND deleted = ${deleted} ")
+      sql = params.key.fold(sql)(key => sql ++ fr"AND key = ${key} ")
+
+      sql = params.limit.fold(sql)(lim => sql ++ fr"LIMIT ${lim} ")
+      sql = params.offset.fold(sql)(offset => sql ++ fr"OFFSET ${offset}")
+
+      sql
         .query[FlagRow]
+        .map { a =>
+          println(a)
+          a
+        }
         .map(_.toFlag)
         .to[Vector]
+    }
 
     def selectFlag(id: Int, preload: Boolean): ConnectionIO[Option[Flag]] =
       sql"""

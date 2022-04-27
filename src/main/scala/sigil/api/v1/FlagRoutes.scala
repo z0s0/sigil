@@ -8,8 +8,8 @@ import sigil.model.Flag
 import sigil.service.FlagService
 
 final class FlagRoutes(srv: FlagService) {
-  private val listLogic = Docs.Flags.list.serverLogic { p =>
-    srv.list.map(_.asRight[Unit])
+  private val listLogic = Docs.Flags.list.serverLogic { params =>
+    srv.list(params).map(_.asRight[Unit])
   }
 
   private val createLogic = Docs.Flags.create.serverLogic { params =>

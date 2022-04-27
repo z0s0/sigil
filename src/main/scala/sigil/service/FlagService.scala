@@ -1,14 +1,19 @@
 package sigil.service
 
 import cats.effect.IO
-import sigil.api.v1.params.{CreateFlagParams, CreateSegmentParams, CreateVariantParams}
+import sigil.api.v1.params.{
+  CreateFlagParams,
+  CreateSegmentParams,
+  CreateVariantParams,
+  FindFlagsParams
+}
 import sigil.model.{Flag, Segment, Variant}
 import sigil.repo.{FlagRepo, MutationError}
 
 import java.util.UUID
 
 trait FlagService {
-  def list: IO[Vector[Flag]]
+  def list(params: FindFlagsParams): IO[Vector[Flag]]
   def get(id: Int): IO[Option[Flag]]
   def create(params: CreateFlagParams): IO[Either[MutationError, Flag]]
 
@@ -28,7 +33,7 @@ trait FlagService {
 
 object FlagService {
   def of(repo: FlagRepo): FlagService = new FlagService {
-    def list: IO[Vector[Flag]] = repo.list
+    def list(params: FindFlagsParams): IO[Vector[Flag]] = repo.list(params: FindFlagsParams)
 
     def create(params: CreateFlagParams): IO[Either[MutationError, Flag]] = params.key match {
       case Some(_) => repo.create(params)

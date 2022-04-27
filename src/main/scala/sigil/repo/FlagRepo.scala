@@ -2,12 +2,17 @@ package sigil.repo
 
 import cats.effect.IO
 import doobie.util.transactor.Transactor
-import sigil.api.v1.params.{CreateFlagParams, CreateSegmentParams, CreateVariantParams}
+import sigil.api.v1.params.{
+  CreateFlagParams,
+  CreateSegmentParams,
+  CreateVariantParams,
+  FindFlagsParams
+}
 import sigil.model.{Flag, Segment, Variant}
 import sigil.repo.impl.pg.FlagRepoPGImpl
 
 trait FlagRepo {
-  def list: IO[Vector[Flag]]
+  def list(params: FindFlagsParams): IO[Vector[Flag]]
   def get(id: Int): IO[Option[Flag]]
   def create(params: CreateFlagParams): IO[Either[MutationError, Flag]]
 
