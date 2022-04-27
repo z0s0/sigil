@@ -2,37 +2,28 @@ package sigil
 
 import cats.effect.unsafe.implicits.global
 import cats.effect.{ExitCode, IO}
-import cats.implicits.toSemigroupKOps
 import org.http4s.blaze.server.BlazeServerBuilder
 import org.http4s.server.Router
 import sigil.api.v1.{Docs, FlagRoutes, NamespaceRoutes}
-import sigil.config.{Config, DBConnection}
-import sigil.pub.SupportedPubChannel
-import sigil.repo.{FlagRepo, NamespaceRepo, SupportedStorage}
-import sigil.service.{FlagService, NamespaceService}
+import sigil.config.Config
 import org.http4s.syntax.kleisli._
 import sttp.tapir.server.ServerEndpoint
+import sttp.tapir.server.ServerEndpoint.Full
 import sttp.tapir.server.http4s.Http4sServerInterpreter
 import sttp.tapir.swagger.bundle.SwaggerInterpreter
 
 object Main {
+
   def main(args: Array[String]): Unit = {
     val server = for {
       config <- Config.load
-      (storage, pubChannel) = (
-        SupportedStorage.fromString(config.appConfig.persistence),
-        SupportedPubChannel.fromString(config.appConfig.pubChannel)
-      )
-      _ <- RunMigrations(config.dbConfig)
-      transactor = DBConnection.of(config.dbConfig)
-
-      flagRepo = FlagRepo.of(transactor, storage)
-      flagService = FlagService.of(flagRepo)
-      namespaceRepo = NamespaceRepo.of(transactor, storage)
-      namespaceService = NamespaceService.of(namespaceRepo)
+      services <- Bootstrap.of(config)
       swaggerEndpoints = SwaggerInterpreter().fromEndpoints[IO](Docs.docs, "Sigil", "1.0")
-      routes = new FlagRoutes(flagService).list ++ new NamespaceRoutes(namespaceService).list
-      interpreter = Http4sServerInterpreter[IO]().toRoutes(routes)
+      routes = new FlagRoutes(services.flagService).list ++ new NamespaceRoutes(
+        services.namespaceService
+      ).list
+
+      interpreter = Http4sServerInterpreter[IO]().toRoutes(routes ++ swaggerEndpoints)
 
       router = Router("/" -> interpreter).orNotFound
       _ <- BlazeServerBuilder[IO]
