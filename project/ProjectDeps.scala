@@ -34,7 +34,8 @@ object ProjectDeps {
   val circeDeps = List(
     "io.circe" %% "circe-core" % versions.circeVsn,
     "io.circe" %% "circe-generic" % versions.circeVsn,
-    "io.circe" %% "circe-parser" % versions.circeVsn
+    "io.circe" %% "circe-parser" % versions.circeVsn,
+    "org.gnieh" %% "diffson-circe" % "4.1.1"
   )
   val configDeps = List(
     "com.github.pureconfig" %% "pureconfig" % versions.pureConfigVersion
