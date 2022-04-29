@@ -4,7 +4,7 @@ import cats.data.Validated
 import cats.effect.IO
 import cats.implicits.{catsSyntaxEitherId, toBifunctorOps}
 import sigil.api.ClientError
-import sigil.model.Flag
+import sigil.model.{Flag, Variant}
 import sigil.service.FlagService
 
 final class FlagRoutes(srv: FlagService) {
@@ -28,5 +28,12 @@ final class FlagRoutes(srv: FlagService) {
     }
   }
 
-  val list = List(listLogic, createLogic, getLogic)
+  private val findVariantsLogic = Docs.Variants.find.serverLogic { flagId =>
+    srv.flagVariants(flagId).map {
+      case Some(vars) => vars.asRight[ClientError]
+      case None       => ClientError(s"flag with id ${flagId} doesn't exist").asLeft[Vector[Variant]]
+    }
+  }
+
+  val list = List(listLogic, createLogic, getLogic, findVariantsLogic)
 }

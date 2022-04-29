@@ -1,10 +1,10 @@
 package sigil.repo.impl.pg
 
-import cats.data.EitherT
+import cats.data.{EitherT, OptionT}
 import cats.effect.IO
 import doobie.util.transactor.Transactor
 import sigil.model.{Flag, Segment, Variant}
-import sigil.repo.{FlagRepo, MutationError}
+import sigil.repo.{FlagRepo, MutationError, NotFound}
 import doobie._
 import doobie.implicits._
 import cats.implicits._
@@ -122,6 +122,12 @@ final class FlagRepoPGImpl(tr: Transactor[IO]) extends FlagRepo {
   def get(id: Int): IO[Option[Flag]] = SQL.selectFlag(id, preload = true).transact(tr)
 
   def list(params: FindFlagsParams): IO[Vector[Flag]] = SQL.list(params).transact(tr)
+
+  def flagVariants(flagId: Int): IO[Option[Vector[Variant]]] =
+    (for {
+      _ <- OptionT(SQL.selectFlag(flagId, preload = false))
+      variants <- OptionT.liftF(SQL.selectVariants(flagId))
+    } yield variants.map(_.toVariant)).value.transact(tr)
 
   def create(params: CreateFlagParams): IO[Either[MutationError, Flag]] =
     (for {
@@ -242,6 +248,13 @@ final class FlagRepoPGImpl(tr: Transactor[IO]) extends FlagRepo {
         .query[VariantRow]
         .map(_.toVariant)
         .option
+
+    def selectVariants(flagId: Int): ConnectionIO[Vector[VariantRow]] =
+      sql"""
+        select id, key, attachment from variants where flag_id = ${flagId}
+      """
+        .query[VariantRow]
+        .to[Vector]
 
     def insertFlag(params: CreateFlagParams) =
       sql"""

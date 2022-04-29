@@ -2,7 +2,7 @@ package sigil.api.v1
 
 import sigil.api.ClientError
 import sigil.api.v1.params.{CreateFlagParams, CreateNamespaceParams, FindFlagsParams}
-import sigil.model.{Flag, Namespace}
+import sigil.model.{Flag, Namespace, Variant}
 import sttp.model.StatusCode
 import sttp.tapir.EndpointInput.QueryParams
 import sttp.tapir.docs.openapi.OpenAPIDocsInterpreter
@@ -62,7 +62,14 @@ object Docs {
       .errorOut(jsonBody[ClientError])
   }
 
-  object Variants {}
+  object Variants {
+    val find = endpoint
+      .get
+      .in("v1" / path[Int] / "variants")
+      .out(jsonBody[Vector[Variant]])
+      .errorOut(statusCode(StatusCode.NotFound))
+      .errorOut(jsonBody[ClientError])
+  }
 
   object Segments {}
 

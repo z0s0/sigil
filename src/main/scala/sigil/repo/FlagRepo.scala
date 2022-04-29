@@ -14,6 +14,8 @@ import sigil.repo.impl.pg.FlagRepoPGImpl
 trait FlagRepo {
   def list(params: FindFlagsParams): IO[Vector[Flag]]
   def get(id: Int): IO[Option[Flag]]
+  def flagVariants(flagId: Int): IO[Option[Vector[Variant]]]
+
   def create(params: CreateFlagParams): IO[Either[MutationError, Flag]]
 
   def createVariant(

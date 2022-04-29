@@ -8,7 +8,7 @@ import sigil.api.v1.params.{
   FindFlagsParams
 }
 import sigil.model.{Flag, Segment, Variant}
-import sigil.repo.{FlagRepo, MutationError}
+import sigil.repo.{FlagRepo, MutationError, NotFound}
 
 import java.util.UUID
 
@@ -18,7 +18,7 @@ trait FlagService {
   def create(params: CreateFlagParams): IO[Either[MutationError, Flag]]
 
   def flagSegments(flagId: Int): IO[Vector[Segment]]
-  def flagVariants(flagId: Int): IO[Vector[Variant]]
+  def flagVariants(flagId: Int): IO[Option[Vector[Variant]]]
 
   def createVariant(
     params: CreateVariantParams
@@ -44,8 +44,8 @@ object FlagService {
 
     def flagSegments(flagId: Int): IO[Vector[Segment]] =
       IO.pure(Vector[Segment]())
-    def flagVariants(flagId: Int): IO[Vector[Variant]] =
-      IO.pure(Vector[Variant]())
+    def flagVariants(flagId: Int): IO[Option[Vector[Variant]]] =
+      repo.flagVariants(flagId)
 
     def createSegment(params: CreateSegmentParams) = repo.createSegment(params)
     def createVariant(params: CreateVariantParams) = repo.createVariant(params)
