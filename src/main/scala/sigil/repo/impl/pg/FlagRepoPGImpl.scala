@@ -2,7 +2,7 @@ package sigil.repo.impl.pg
 
 import cats.data.{EitherT, OptionT}
 import cats.effect.IO
-import cats.implicits.{catsSyntaxApplicativeId, catsSyntaxEitherId}
+import cats.implicits.{catsSyntaxApplicativeId, catsSyntaxEitherId, catsSyntaxIfM, toFunctorOps}
 import doobie.util.transactor.Transactor
 import sigil.model.{Flag, Segment, Variant}
 import sigil.repo.{DbError, FlagRepo, MutationError, NotFound, ReadError}
@@ -13,7 +13,8 @@ import sigil.api.v1.params.{
   CreateFlagParams,
   CreateSegmentParams,
   CreateVariantParams,
-  FindFlagsParams
+  FindFlagsParams,
+  UpdateVariantParams
 }
 import sigil.repo.impl.pg.FlagRepoPGImpl._
 import sigil.repo.DbError.ConnectionIOOps
@@ -155,6 +156,20 @@ final class FlagRepoPGImpl(tr: Transactor[IO]) extends FlagRepo {
       })
       .transact(tr)
 
+  def updateVariant(variantId: Int, params: UpdateVariantParams): IO[Either[DbError, Variant]] =
+    SQL
+      .variantExists(variantId)
+      .ifM(
+        SQL
+          .updateVariant(variantId, params)
+          .as(Variant(variantId, params.key, params.attachment).asRight[DbError]),
+        ReadError
+          .notFound(s"variant with id ${variantId} not found")
+          .asLeft[Variant]
+          .pure[ConnectionIO]
+      )
+      .transact(tr)
+
   def createSegment(params: CreateSegmentParams) = ???
 
   def deleteVariant(variantId: Int): IO[Either[MutationError, Unit]] =
@@ -278,5 +293,16 @@ final class FlagRepoPGImpl(tr: Transactor[IO]) extends FlagRepo {
          """
         .update
         .withUniqueGeneratedKeys[Int]("id")
+
+    def variantExists(variantId: Int): ConnectionIO[Boolean] =
+      sql"select 1 from variants where id = ${variantId}"
+        .query[Int]
+        .option
+        .map(_.fold(false)(_ => true))
+
+    def updateVariant(variantId: Int, params: UpdateVariantParams) =
+      sql"update variants set key = ${params.key}, attachment = ${params.attachment} where id = ${variantId}"
+        .update
+        .run
   }
 }

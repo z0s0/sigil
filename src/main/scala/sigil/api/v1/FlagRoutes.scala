@@ -3,6 +3,7 @@ package sigil.api.v1
 import cats.data.Validated
 import cats.effect.IO
 import cats.implicits.{catsSyntaxEitherId, toBifunctorOps}
+import io.circe.Json
 import sigil.api.ClientError
 import sigil.model.{Flag, Variant}
 import sigil.service.FlagService
@@ -43,5 +44,20 @@ final class FlagRoutes(srv: FlagService) {
       }
   }
 
-  val list = List(listLogic, createLogic, getLogic, findVariantsLogic, createVariantLogic)
+  private val updateVariantLogic = Docs.Variants.update.serverLogic {
+    case (_, variantId, params) =>
+      srv.updateVariant(variantId, params).map {
+        case Left(value)  => ClientError(value.toString).asLeft[Variant]
+        case Right(value) => value.asRight[ClientError]
+      }
+  }
+
+  val list = List(
+    listLogic,
+    createLogic,
+    getLogic,
+    findVariantsLogic,
+    createVariantLogic,
+    updateVariantLogic
+  )
 }

@@ -5,7 +5,8 @@ import sigil.api.v1.params.{
   CreateFlagParams,
   CreateNamespaceParams,
   CreateVariantParams,
-  FindFlagsParams
+  FindFlagsParams,
+  UpdateVariantParams
 }
 import sigil.model.{Flag, Namespace, Variant}
 import sttp.model.StatusCode
@@ -69,7 +70,7 @@ object Docs {
   object Variants {
     val find = endpoint
       .get
-      .in("v1" / path[Int] / "variants")
+      .in("v1" / "flags" / path[Int] / "variants")
       .out(jsonBody[Vector[Variant]])
       .errorOut(statusCode(StatusCode.NotFound))
       .errorOut(jsonBody[ClientError])
@@ -81,6 +82,14 @@ object Docs {
       .out(jsonBody[Variant])
       .errorOut(statusCode(StatusCode.BadRequest))
       .errorOut(jsonBody[ClientError])
+
+    val update = endpoint
+      .put
+      .in("v1" / "flags" / path[Int] / "variants" / path[Int])
+      .in(jsonBody[UpdateVariantParams])
+      .out(jsonBody[Variant])
+      .errorOut(jsonBody[ClientError])
+      .errorOut(statusCode(StatusCode.BadRequest))
   }
 
   object Segments {}
@@ -91,7 +100,8 @@ object Docs {
     Flags.list,
     Flags.create,
     Variants.find,
-    Variants.create
+    Variants.create,
+    Variants.update
   )
 
   val yaml = OpenAPIDocsInterpreter().toOpenAPI(docs, "Sigil", "1").toYaml

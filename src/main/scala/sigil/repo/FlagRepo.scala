@@ -6,7 +6,8 @@ import sigil.api.v1.params.{
   CreateFlagParams,
   CreateSegmentParams,
   CreateVariantParams,
-  FindFlagsParams
+  FindFlagsParams,
+  UpdateVariantParams
 }
 import sigil.model.{Flag, Segment, Variant}
 import sigil.repo.impl.pg.FlagRepoPGImpl
@@ -25,6 +26,8 @@ trait FlagRepo {
   def createSegment(
     params: CreateSegmentParams
   ): IO[Either[MutationError, Segment]]
+
+  def updateVariant(variantId: Int, params: UpdateVariantParams): IO[Either[DbError, Variant]]
 
   def deleteVariant(variantId: Int): IO[Either[MutationError, Unit]]
   def deleteSegment(segmentId: Int): IO[Either[MutationError, Unit]]
