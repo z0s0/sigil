@@ -2,12 +2,13 @@ package sigil.repo.impl.pg
 
 import cats.data.{EitherT, OptionT}
 import cats.effect.IO
+import cats.implicits.{catsSyntaxApplicativeId, catsSyntaxEitherId}
 import doobie.util.transactor.Transactor
 import sigil.model.{Flag, Segment, Variant}
-import sigil.repo.{FlagRepo, MutationError, NotFound}
+import sigil.repo.{DbError, FlagRepo, MutationError, NotFound, ReadError}
 import doobie._
 import doobie.implicits._
-import cats.implicits._
+import io.circe.Json
 import sigil.api.v1.params.{
   CreateFlagParams,
   CreateSegmentParams,
@@ -139,13 +140,19 @@ final class FlagRepoPGImpl(tr: Transactor[IO]) extends FlagRepo {
     } yield flag).transact(tr).value
 
   def createVariant(
+    flagId: Int,
     params: CreateVariantParams
-  ): IO[Either[MutationError, Variant]] =
-    SQL
-      .insertVariant(params)
-      .map { id =>
-        Variant(id = id, key = params.key, attachment = params.attachment).asRight[MutationError]
-      }
+  ): IO[Either[DbError, Variant]] =
+    (SQL
+      .selectFlag(flagId, preload = false)
+      .flatMap {
+        case Some(_) =>
+          SQL
+            .insertVariant(flagId, params)
+            .map(id => Variant(id, params.key, params.attachment).asRight[DbError])
+        case None =>
+          ReadError.notFound(s"flag with id ${flagId} not found").asLeft[Variant].pure[ConnectionIO]
+      })
       .transact(tr)
 
   def createSegment(params: CreateSegmentParams) = ???
@@ -233,7 +240,7 @@ final class FlagRepoPGImpl(tr: Transactor[IO]) extends FlagRepo {
           .map(preloadsToFlag)
       } else
         sql"""
-           select id, key, description, enabled, notes from flags
+           select id, key, description, created_by, updated_by, enabled, snapshot_id, notes, data_records_enabled, entity_type from flags
            where id = $id
          """
           .query[PlainFlagRow]
@@ -264,10 +271,10 @@ final class FlagRepoPGImpl(tr: Transactor[IO]) extends FlagRepo {
         .update
         .withUniqueGeneratedKeys[Int]("id")
 
-    def insertVariant(params: CreateVariantParams) =
+    def insertVariant(flagId: Int, params: CreateVariantParams) =
       sql"""
            insert into variants(flag_id, key, attachment)
-           values (${params.flagId}, ${params.key}, ${params.attachment})
+           values (${flagId}, ${params.key}, ${params.attachment})
          """
         .update
         .withUniqueGeneratedKeys[Int]("id")

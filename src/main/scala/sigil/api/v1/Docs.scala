@@ -1,10 +1,14 @@
 package sigil.api.v1
 
 import sigil.api.ClientError
-import sigil.api.v1.params.{CreateFlagParams, CreateNamespaceParams, FindFlagsParams}
+import sigil.api.v1.params.{
+  CreateFlagParams,
+  CreateNamespaceParams,
+  CreateVariantParams,
+  FindFlagsParams
+}
 import sigil.model.{Flag, Namespace, Variant}
 import sttp.model.StatusCode
-import sttp.tapir.EndpointInput.QueryParams
 import sttp.tapir.docs.openapi.OpenAPIDocsInterpreter
 import sttp.tapir.json.circe.jsonBody
 import sttp.tapir.generic.auto._
@@ -69,6 +73,14 @@ object Docs {
       .out(jsonBody[Vector[Variant]])
       .errorOut(statusCode(StatusCode.NotFound))
       .errorOut(jsonBody[ClientError])
+
+    val create = endpoint
+      .post
+      .in("v1" / "flags" / path[Int] / "variants")
+      .in(jsonBody[CreateVariantParams])
+      .out(jsonBody[Variant])
+      .errorOut(statusCode(StatusCode.BadRequest))
+      .errorOut(jsonBody[ClientError])
   }
 
   object Segments {}
@@ -77,7 +89,9 @@ object Docs {
     Namespaces.list,
     Namespaces.create,
     Flags.list,
-    Flags.create
+    Flags.create,
+    Variants.find,
+    Variants.create
   )
 
   val yaml = OpenAPIDocsInterpreter().toOpenAPI(docs, "Sigil", "1").toYaml

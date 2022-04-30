@@ -19,8 +19,9 @@ trait FlagRepo {
   def create(params: CreateFlagParams): IO[Either[MutationError, Flag]]
 
   def createVariant(
+    flagId: Int,
     params: CreateVariantParams
-  ): IO[Either[MutationError, Variant]]
+  ): IO[Either[DbError, Variant]]
   def createSegment(
     params: CreateSegmentParams
   ): IO[Either[MutationError, Segment]]

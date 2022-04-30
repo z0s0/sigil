@@ -29,6 +29,9 @@ object DbError {
   }
 }
 
+object ReadError {
+  def notFound(msg: String): DbError = NotFound(msg)
+}
 object MutationError {
   val impossible: MutationError = Impossible
 }

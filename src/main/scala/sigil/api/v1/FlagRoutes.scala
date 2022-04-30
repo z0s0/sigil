@@ -35,5 +35,13 @@ final class FlagRoutes(srv: FlagService) {
     }
   }
 
-  val list = List(listLogic, createLogic, getLogic, findVariantsLogic)
+  private val createVariantLogic = Docs.Variants.create.serverLogic {
+    case (flagId, params) =>
+      srv.createVariant(flagId, params).map {
+        case Left(value)  => ClientError(value.toString).asLeft[Variant]
+        case Right(value) => value.asRight[ClientError]
+      }
+  }
+
+  val list = List(listLogic, createLogic, getLogic, findVariantsLogic, createVariantLogic)
 }
