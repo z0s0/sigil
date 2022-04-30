@@ -3,7 +3,6 @@ package sigil.api.v1
 import cats.data.Validated
 import cats.effect.IO
 import cats.implicits.{catsSyntaxEitherId, toBifunctorOps}
-import io.circe.Json
 import sigil.api.ClientError
 import sigil.model.{Flag, Variant}
 import sigil.service.FlagService
@@ -52,12 +51,17 @@ final class FlagRoutes(srv: FlagService) {
       }
   }
 
+  private val deleteVariantLogic = Docs.Variants.delete.serverLogic[IO] {
+    case (_, variantId) => ???
+  }
+
   val list = List(
     listLogic,
     createLogic,
     getLogic,
     findVariantsLogic,
     createVariantLogic,
-    updateVariantLogic
+    updateVariantLogic,
+    deleteVariantLogic
   )
 }

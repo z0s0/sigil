@@ -4,9 +4,11 @@ import cats.effect.unsafe.implicits.global
 import cats.effect.{ExitCode, IO}
 import org.http4s.blaze.server.BlazeServerBuilder
 import org.http4s.server.Router
-import sigil.api.v1.{Docs, FlagRoutes, NamespaceRoutes}
+import sigil.api.v1.{Docs, EvaluationRoutes, FlagRoutes, NamespaceRoutes}
 import sigil.config.Config
 import org.http4s.syntax.kleisli._
+import sigil.api.v1.params.{EvalBatchParams, EvalParams}
+import sigil.model.EvalResult
 import sttp.tapir.server.ServerEndpoint
 import sttp.tapir.server.ServerEndpoint.Full
 import sttp.tapir.server.http4s.Http4sServerInterpreter
@@ -21,7 +23,7 @@ object Main {
       swaggerEndpoints = SwaggerInterpreter().fromEndpoints[IO](Docs.docs, "Sigil", "1.0")
       routes = new FlagRoutes(services.flagService).list ++ new NamespaceRoutes(
         services.namespaceService
-      ).list
+      ).list ++ new EvaluationRoutes().list
 
       interpreter = Http4sServerInterpreter[IO]().toRoutes(routes ++ swaggerEndpoints)
 

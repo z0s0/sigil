@@ -34,8 +34,8 @@ trait FlagService {
     params: UpdateVariantParams
   ): IO[Either[DbError, Variant]]
 
-  def deleteVariant(flagId: Int, variantId: Int): IO[Either[MutationError, Unit]]
-  def deleteSegment(flagId: Int, segmentId: Int): IO[Either[MutationError, Unit]]
+  def deleteVariant(variantId: Int): IO[Either[MutationError, Unit]]
+  def deleteSegment(segmentId: Int): IO[Either[MutationError, Unit]]
 }
 
 object FlagService {
@@ -60,9 +60,9 @@ object FlagService {
     def updateVariant(variantId: Int, params: UpdateVariantParams): IO[Either[DbError, Variant]] =
       repo.updateVariant(variantId, params)
 
-    def deleteSegment(flagId: Int, segmentId: Int): IO[Either[MutationError, Unit]] =
+    def deleteSegment(segmentId: Int): IO[Either[MutationError, Unit]] =
       repo.deleteSegment(segmentId)
-    def deleteVariant(flagId: Int, variantId: Int): IO[Either[MutationError, Unit]] =
+    def deleteVariant(variantId: Int): IO[Either[MutationError, Unit]] =
       repo.deleteVariant(variantId)
   }
 }
