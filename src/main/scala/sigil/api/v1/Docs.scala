@@ -194,11 +194,13 @@ object Docs {
     val eval = endpoint
       .post
       .in(jsonBody[EvalParams])
+      .in("v1" / "evaluation")
       .out(jsonBody[EvalResult])
       .errorOut(statusCode(StatusCode.BadRequest))
 
     val evalBatch = endpoint
       .post
+      .in("v1" / "evaluation" / "batch")
       .in(jsonBody[EvalBatchParams])
       .out(jsonBody[Vector[EvalResult]])
   }

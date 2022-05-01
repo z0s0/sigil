@@ -16,3 +16,7 @@ import java.time.Instant
   evalContext: Option[String],
   evalDebugLog: Option[String]
 )
+
+object EvalResult {
+  val empty: EvalResult = EvalResult(None, None, None, None, None, None, None, None, None, None)
+}

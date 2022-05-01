@@ -3,10 +3,14 @@ package sigil
 import sigil.config.{Config, DBConnection}
 import sigil.pub.SupportedPubChannel
 import sigil.repo.{FlagRepo, NamespaceRepo, SupportedStorage}
-import sigil.service.{FlagService, NamespaceService}
+import sigil.service.{EvaluationService, FlagService, NamespaceService}
 
 object Bootstrap {
-  final case class Services(flagService: FlagService, namespaceService: NamespaceService)
+  final case class Services(
+    flagService: FlagService,
+    namespaceService: NamespaceService,
+    evaluationService: EvaluationService
+  )
 
   def of(config: Config) = {
     val (storage, pubChannel) = (
@@ -21,7 +25,8 @@ object Bootstrap {
       flagService = FlagService.of(flagRepo)
       namespaceRepo = NamespaceRepo.of(transactor, storage)
       namespaceService = NamespaceService.of(namespaceRepo)
-    } yield Services(flagService, namespaceService)
+      evalService <- EvaluationService.of(flagService)
+    } yield Services(flagService, namespaceService, evalService)
   }
 
 }
