@@ -131,6 +131,14 @@ final class FlagRepoPGImpl(tr: Transactor[IO]) extends FlagRepo {
       variants <- OptionT.liftF(SQL.selectVariants(flagId))
     } yield variants.map(_.toVariant)).value.transact(tr)
 
+  def flagSegmentIds(flagId: Int): IO[Option[Vector[Int]]] =
+    (for {
+      _ <- OptionT(sql"select 1 from flags where id = ${flagId}".query.option)
+      ids <- OptionT.liftF(
+        sql"select id from segments where flag_id = ${flagId}".query[Int].to[Vector]
+      )
+    } yield ids).value.transact(tr)
+
   def create(params: CreateFlagParams): IO[Either[MutationError, Flag]] =
     (for {
       id <- EitherT { SQL.insertFlag(params).withMutationErrorsHandling }

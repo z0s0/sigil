@@ -2,8 +2,8 @@ package sigil
 
 import sigil.config.{Config, DBConnection}
 import sigil.pub.SupportedPubChannel
-import sigil.repo.{FlagRepo, NamespaceRepo, SupportedStorage}
-import sigil.service.{EvaluationService, FlagService, NamespaceService}
+import sigil.repo.{FlagRepo, NamespaceRepo, SegmentRepo, SupportedStorage}
+import sigil.service.{EvaluationService, FlagService, NamespaceService, SegmentsService}
 
 object Bootstrap {
   final case class Services(
@@ -21,10 +21,14 @@ object Bootstrap {
     for {
       _ <- RunMigrations(config.dbConfig)
       transactor = DBConnection.of(config.dbConfig)
+
       flagRepo = FlagRepo.of(transactor, storage)
-      flagService = FlagService.of(flagRepo)
+      segmentRepo = SegmentRepo.of(transactor, storage)
       namespaceRepo = NamespaceRepo.of(transactor, storage)
+
+      flagService = FlagService.of(flagRepo)
       namespaceService = NamespaceService.of(namespaceRepo)
+      segmentsService = SegmentsService.of(flagRepo, segmentRepo)
       evalService <- EvaluationService.of(flagService)
     } yield Services(flagService, namespaceService, evalService)
   }
