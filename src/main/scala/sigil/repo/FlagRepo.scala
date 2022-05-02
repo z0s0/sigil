@@ -16,6 +16,7 @@ trait FlagRepo {
   def list(params: FindFlagsParams): IO[Vector[Flag]]
   def get(id: Int): IO[Option[Flag]]
   def flagVariants(flagId: Int): IO[Option[Vector[Variant]]]
+  def flagSegmentIds(flagId: Int): IO[Option[Vector[Int]]]
 
   def create(params: CreateFlagParams): IO[Either[MutationError, Flag]]
 
