@@ -71,7 +71,7 @@ CREATE TABLE segments(
   description text,
   rank integer,
   rollout_ppm integer,
-  ordering integer not null default 0,
+  ordering integer not null default 0
 );
 CREATE INDEX on segments(flag_id);
 CREATE INDEX on segments(deleted_at);

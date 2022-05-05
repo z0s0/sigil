@@ -1,4 +1,3 @@
-import ProjectDeps.versions.circeVsn
 import sbt._
 
 object ProjectDeps {
@@ -14,7 +13,6 @@ object ProjectDeps {
     val scalacheck = "1.14.3"
     val `scalacheck-1-14` = "3.2.0.0"
     val scalamock = "5.0.0"
-
     val `scalacheck-shapeless_1.14` = "1.2.3"
     val cats = "2.7.0"
     val http4s = "0.23.11"

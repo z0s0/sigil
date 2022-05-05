@@ -24,3 +24,7 @@ final case class FindFlagsParams(
     )
   }
 }
+
+object FindFlagsParams {
+  val Empty = FindFlagsParams(None, None, None, None, None, None, None, None, None)
+}
