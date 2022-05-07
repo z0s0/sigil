@@ -1,13 +1,13 @@
 package sigil.repo.impl.pg
 
 import cats.effect.IO
+import cats.effect.unsafe.implicits.global
 import org.scalatest.freespec.AnyFreeSpec
 import sigil.api.v1.params.FindFlagsParams
 import sigil.repo.{FlagRepo, PG}
 import support.PostgreSqlContainer
 
 final class FlagRepoPGImplSpec extends AnyFreeSpec {
-  import cats.effect.unsafe.implicits.global
 
   "list" - {
 

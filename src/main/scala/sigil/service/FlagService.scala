@@ -3,13 +3,12 @@ package sigil.service
 import cats.effect.IO
 import sigil.api.v1.params.{
   CreateFlagParams,
-  CreateSegmentParams,
   CreateVariantParams,
   FindFlagsParams,
   UpdateVariantParams
 }
 import sigil.model.{Flag, Segment, Variant}
-import sigil.repo.{DbError, FlagRepo, MutationError, NotFound}
+import sigil.repo.{DbError, FlagRepo, MutationError}
 
 import java.util.UUID
 
@@ -18,16 +17,13 @@ trait FlagService {
   def get(id: Int): IO[Option[Flag]]
   def create(params: CreateFlagParams): IO[Either[MutationError, Flag]]
 
-  def flagSegments(flagId: Int): IO[Vector[Segment]]
+  def flagSegments(flagId: Int): IO[Option[Vector[Segment]]]
   def flagVariants(flagId: Int): IO[Option[Vector[Variant]]]
 
   def createVariant(
     flagId: Int,
     params: CreateVariantParams
   ): IO[Either[DbError, Variant]]
-  def createSegment(
-    params: CreateSegmentParams
-  ): IO[Either[MutationError, Segment]]
 
   def updateVariant(
     variantId: Int,
@@ -49,13 +45,13 @@ object FlagService {
 
     def get(id: Int): IO[Option[Flag]] = repo.get(id)
 
-    def flagSegments(flagId: Int): IO[Vector[Segment]] =
-      IO.pure(Vector[Segment]())
+    def flagSegments(flagId: Int): IO[Option[Vector[Segment]]] =
+      repo.flagSegments(flagId)
     def flagVariants(flagId: Int): IO[Option[Vector[Variant]]] =
       repo.flagVariants(flagId)
 
-    def createSegment(params: CreateSegmentParams) = repo.createSegment(params)
-    def createVariant(flagId: Int, params: CreateVariantParams) = repo.createVariant(flagId, params)
+    def createVariant(flagId: Int, params: CreateVariantParams): IO[Either[DbError, Variant]] =
+      repo.createVariant(flagId, params)
 
     def updateVariant(variantId: Int, params: UpdateVariantParams): IO[Either[DbError, Variant]] =
       repo.updateVariant(variantId, params)

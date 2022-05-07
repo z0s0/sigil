@@ -4,8 +4,9 @@ import cats.data.Validated
 import sigil.api.ApiParams
 import cats.instances.list._
 import cats.instances.string._
+import io.circe.generic.JsonCodec
 
-final case class CreateSegmentParams(flagId: Int, description: String, rolloutPpm: Int)
+@JsonCodec final case class CreateSegmentParams(description: String, rolloutPpm: Int)
     extends ApiParams {
   def validate: Validated[List[String], String] =
     Validated
@@ -17,4 +18,8 @@ final case class CreateSegmentParams(flagId: Int, description: String, rolloutPp
           List("rollout out of range")
         )
       )
+}
+
+object CreateSegmentParams {
+  val Test = CreateSegmentParams("test", 100)
 }

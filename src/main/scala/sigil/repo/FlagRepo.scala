@@ -4,7 +4,6 @@ import cats.effect.IO
 import doobie.util.transactor.Transactor
 import sigil.api.v1.params.{
   CreateFlagParams,
-  CreateSegmentParams,
   CreateVariantParams,
   FindFlagsParams,
   UpdateVariantParams
@@ -15,7 +14,9 @@ import sigil.repo.impl.pg.FlagRepoPGImpl
 trait FlagRepo {
   def list(params: FindFlagsParams): IO[Vector[Flag]]
   def get(id: Int): IO[Option[Flag]]
+
   def flagVariants(flagId: Int): IO[Option[Vector[Variant]]]
+  def flagSegments(flagId: Int): IO[Option[Vector[Segment]]]
   def flagSegmentIds(flagId: Int): IO[Option[Vector[Int]]]
 
   def create(params: CreateFlagParams): IO[Either[MutationError, Flag]]
@@ -24,9 +25,6 @@ trait FlagRepo {
     flagId: Int,
     params: CreateVariantParams
   ): IO[Either[DbError, Variant]]
-  def createSegment(
-    params: CreateSegmentParams
-  ): IO[Either[MutationError, Segment]]
 
   def updateVariant(variantId: Int, params: UpdateVariantParams): IO[Either[DbError, Variant]]
 
