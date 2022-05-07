@@ -135,9 +135,19 @@ final class FlagRepoPGImpl(tr: Transactor[IO]) extends FlagRepo {
     (for {
       _ <- OptionT(sql"select 1 from flags where id = ${flagId}".query.option)
       ids <- OptionT.liftF(
-        sql"select id from segments where flag_id = ${flagId}".query[Int].to[Vector]
+        sql"select id from segments where flag_id = ${flagId} order by rank".query[Int].to[Vector]
       )
     } yield ids).value.transact(tr)
+
+  def flagSegments(flagId: Int): IO[Option[Vector[Segment]]] =
+    (for {
+      _ <- OptionT(sql"select 1 from flags where id = ${flagId}".query.option)
+      segments <- OptionT.liftF(
+        sql"select id, description, rank, rollout_ppm from segments where flag_id = ${flagId}"
+          .query[Segment]
+          .to[Vector]
+      )
+    } yield segments).value.transact(tr)
 
   def create(params: CreateFlagParams): IO[Either[MutationError, Flag]] =
     (for {
@@ -177,8 +187,6 @@ final class FlagRepoPGImpl(tr: Transactor[IO]) extends FlagRepo {
           .pure[ConnectionIO]
       )
       .transact(tr)
-
-  def createSegment(params: CreateSegmentParams) = ???
 
   def deleteVariant(variantId: Int): IO[Either[MutationError, Unit]] =
     sql"""delete from variants where id = $variantId"""

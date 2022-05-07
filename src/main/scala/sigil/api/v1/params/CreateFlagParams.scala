@@ -17,3 +17,12 @@ import sigil.api.ApiParams
       List("description must be present")
     )
 }
+
+object CreateFlagParams {
+  val Test = CreateFlagParams(
+    "test",
+    1,
+    Some("test"),
+    None
+  )
+}

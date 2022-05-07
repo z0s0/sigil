@@ -4,10 +4,12 @@ import sigil.api.ClientError
 import sigil.api.v1.params.{
   CreateFlagParams,
   CreateNamespaceParams,
+  CreateSegmentParams,
   CreateVariantParams,
   EvalBatchParams,
   EvalParams,
   FindFlagsParams,
+  ReorderSegmentsParams,
   UpdateFlagParams,
   UpdateSegmentParams,
   UpdateVariantParams
@@ -164,11 +166,19 @@ object Docs {
       .errorOut(statusCode(StatusCode.NotFound))
       .errorOut(jsonBody[ClientError])
 
+    val create = endpoint
+      .post
+      .in("v1" / "flags" / path[Int] / "segments")
+      .in(jsonBody[CreateSegmentParams])
+      .out(jsonBody[Segment])
+      .errorOut(statusCode(StatusCode.NotFound))
+      .errorOut(jsonBody[ClientError])
+
     val reorder =
       endpoint
         .put
         .in("v1" / "flags" / path[Int] / "segments" / "reorder")
-        .in(jsonBody[List[Int]])
+        .in(jsonBody[ReorderSegmentsParams])
         .out(statusCode(StatusCode.Ok))
         .errorOut(statusCode(StatusCode.NotFound))
         .errorOut(jsonBody[ClientError])
@@ -221,6 +231,7 @@ object Docs {
     Variants.update,
     Variants.delete,
     Segments.list,
+    Segments.create,
     Segments.update,
     Segments.delete,
     Segments.reorder,

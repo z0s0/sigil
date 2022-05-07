@@ -9,7 +9,8 @@ object Bootstrap {
   final case class Services(
     flagService: FlagService,
     namespaceService: NamespaceService,
-    evaluationService: EvaluationService
+    evaluationService: EvaluationService,
+    segmentsService: SegmentsService
   )
 
   def of(config: Config) = {
@@ -30,7 +31,7 @@ object Bootstrap {
       namespaceService = NamespaceService.of(namespaceRepo)
       segmentsService = SegmentsService.of(flagRepo, segmentRepo)
       evalService <- EvaluationService.of(flagService)
-    } yield Services(flagService, namespaceService, evalService)
+    } yield Services(flagService, namespaceService, evalService, segmentsService)
   }
 
 }

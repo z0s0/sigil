@@ -69,12 +69,12 @@ CREATE TABLE segments(
   deleted_at TIMESTAMP WITH TIME ZONE,
   flag_id INTEGER NOT NULL REFERENCES flags(id),
   description text,
-  rank integer,
-  rollout_ppm integer,
-  ordering integer not null default 0
+  rank integer not null default 0,
+  rollout_ppm integer
 );
 CREATE INDEX on segments(flag_id);
 CREATE INDEX on segments(deleted_at);
+CREATE UNIQUE INDEX ON segments(id, rank);
 
 CREATE TABLE distributions(
   id serial primary key,

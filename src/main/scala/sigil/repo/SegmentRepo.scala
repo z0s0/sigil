@@ -2,10 +2,13 @@ package sigil.repo
 
 import cats.effect.IO
 import doobie.util.transactor.Transactor
+import sigil.api.v1.params.CreateSegmentParams
+import sigil.model.Segment
 import sigil.repo.impl.pg.SegmentRepoPgImpl
 
 trait SegmentRepo {
-  def upsertWithOrder(segmentIds: Vector[Int]): IO[Unit]
+  def createSegment(flagId: Int, params: CreateSegmentParams): IO[Option[Segment]]
+  def upsertWithOrder(flagId: Int, segmentIds: List[Int]): IO[Unit]
 }
 
 object SegmentRepo {
