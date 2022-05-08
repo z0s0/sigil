@@ -34,7 +34,7 @@ object EvaluationService {
             case Some(flag) =>
               for {
                 entityId <- params.entityId.fold(random.nextInt.map(_.toString))(IO.pure)
-                res <- doEval(entityId, flag)
+                res <- doEval(entityId, flag, params.entityContext)
               } yield res
             case None => EvalResult.empty.pure[IO]
           }
@@ -43,8 +43,19 @@ object EvaluationService {
 
       def evalBatch(params: EvalBatchParams): IO[Vector[EvalResult]] = ???
 
-      private def doEval(entityId: String, flag: Flag): IO[EvalResult] = {
-        val variant = Util.toPositive(Util.hash(entityId)) % flag.variants.size
+      private def doEval(
+        entityId: String,
+        flag: Flag,
+        entityContext: Option[String]
+      ): IO[EvalResult] = {
+        val hashResult = crc32.getValue.toInt
+        val variant = flag.variants(hashResult % flag.variants.size)
+
+        flag.segments.find { segment =>
+          segment.constraints.exists { constraint =>
+            1 == 1
+          }
+        }
         for {
           hashResult <- IO(crc32.getValue.toInt)
           variant <- IO.pure(flag.variants(hashResult % flag.variants.size))
