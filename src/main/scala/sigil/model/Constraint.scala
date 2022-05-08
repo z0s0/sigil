@@ -1,6 +1,8 @@
 package sigil.model
 
-final case class Constraint(
+import io.circe.generic.JsonCodec
+
+@JsonCodec final case class Constraint(
   segmentId: Int,
   property: String,
   operator: String,
@@ -24,6 +26,20 @@ object Constraint {
   case object NOTCONTAINS extends Operator
 
   object Operator {
+//    def apply[A, B](a: A, b: B, operator: Operator): Boolean = operator match {
+//      case EQ => a == b
+//      case NEQ =>a != b
+//      case LT => a <= b
+//      case LTE =>
+//      case GT =>
+//      case GTE =>
+//      case EREG =>
+//      case NEREG =>
+//      case IN =>
+//      case NOTIN =>
+//      case CONTAINS =>
+//      case NOTCONTAINS =>
+//    }
     def fromString(str: String): Option[Operator] = str match {
       case "=="           => Some(EQ)
       case "!="           => Some(NEQ)

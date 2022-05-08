@@ -1,5 +1,6 @@
 package sigil
 
+import sigil.cache.{Cache, Warmup}
 import sigil.config.{Config, DBConnection}
 import sigil.pub.SupportedPubChannel
 import sigil.repo.{FlagRepo, NamespaceRepo, SegmentRepo, SupportedStorage}
@@ -20,17 +21,20 @@ object Bootstrap {
     )
 
     for {
-      _ <- RunMigrations(config.dbConfig)
+      _ <- RunMigrations(config.dbConfig, storage)
       transactor = DBConnection.of(config.dbConfig)
 
       flagRepo = FlagRepo.of(transactor, storage)
       segmentRepo = SegmentRepo.of(transactor, storage)
       namespaceRepo = NamespaceRepo.of(transactor, storage)
 
-      flagService = FlagService.of(flagRepo)
+      cache = Cache.of()
+      _ <- Warmup(flagRepo, cache)
+      flagService = FlagService.of(flagRepo, cache)
       namespaceService = NamespaceService.of(namespaceRepo)
       segmentsService = SegmentsService.of(flagRepo, segmentRepo)
       evalService <- EvaluationService.of(flagService)
+
     } yield Services(flagService, namespaceService, evalService, segmentsService)
   }
 

@@ -1,5 +1,6 @@
 package sigil.service
 
+import cats.data.EitherT
 import cats.effect.IO
 import sigil.api.v1.params.{
   CreateFlagParams,
@@ -7,6 +8,7 @@ import sigil.api.v1.params.{
   FindFlagsParams,
   UpdateVariantParams
 }
+import sigil.cache.Cache
 import sigil.model.{Flag, Segment, Variant}
 import sigil.repo.{DbError, FlagRepo, MutationError}
 
@@ -35,12 +37,19 @@ trait FlagService {
 }
 
 object FlagService {
-  def of(repo: FlagRepo): FlagService = new FlagService {
+  def of(repo: FlagRepo, cache: Cache): FlagService = new FlagService {
     def list(params: FindFlagsParams): IO[Vector[Flag]] = repo.list(params: FindFlagsParams)
 
     def create(params: CreateFlagParams): IO[Either[MutationError, Flag]] = params.key match {
-      case Some(_) => repo.create(params)
-      case None    => repo.create(params.copy(key = Some(UUID.randomUUID().toString)))
+      case None =>
+        repo.create(params.copy(key = Some(UUID.randomUUID().toString)))
+
+      case Some(_) =>
+        (for {
+          flag <- EitherT(repo.create(params))
+          _ <- EitherT.liftF[IO, MutationError, Unit](IO(cache.putFlag(flag)))
+        } yield flag).value
+
     }
 
     def get(id: Int): IO[Option[Flag]] = repo.get(id)

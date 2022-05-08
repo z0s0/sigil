@@ -25,6 +25,28 @@ object FlagRepoPGImpl {
       Variant(id = id, key = key, attachment = attachment)
   }
 
+  final case class SegmentRow(
+    id: Int,
+    description: String,
+    rank: Int,
+    rolloutPpm: Int,
+    cId: Int,
+    cProperty: String,
+    cOperator: String,
+    cValue: String
+  )
+
+  object SegmentRow {
+    def toSegment(segmentRows: Vector[SegmentRow]): Vector[Segment] =
+      if (segmentRows.isEmpty) Vector()
+      else {
+        segmentRows.groupBy(_.id).map {
+          case (id, rows) =>
+        }
+        ???
+      }
+  }
+
   final case class TagRow()
 
   sealed trait FlagRow
@@ -142,11 +164,18 @@ final class FlagRepoPGImpl(tr: Transactor[IO]) extends FlagRepo {
   def flagSegments(flagId: Int): IO[Option[Vector[Segment]]] =
     (for {
       _ <- OptionT(sql"select 1 from flags where id = ${flagId}".query.option)
-      segments <- OptionT.liftF(
-        sql"select id, description, rank, rollout_ppm from segments where flag_id = ${flagId}"
-          .query[Segment]
+
+      segments <- OptionT.liftF {
+        sql"""
+            select s.id, s.description, s.rank, s.rollout_ppm, c.id, c.property, c.operator, c.value
+            from segments s 
+            join constraints c on c.segment_id = s.id 
+            where flag_id = ${flagId}
+          """
+          .query[SegmentRow]
           .to[Vector]
-      )
+          .map(SegmentRow.toSegment)
+      }
     } yield segments).value.transact(tr)
 
   def create(params: CreateFlagParams): IO[Either[MutationError, Flag]] =

@@ -6,6 +6,7 @@ import com.dimafeng.testcontainers.PostgreSQLContainer
 import doobie.Transactor
 import sigil.RunMigrations
 import sigil.config.{DBConnection, DbConfig}
+import sigil.repo.{PG, SupportedStorage}
 
 object PostgreSqlContainer {
   def setupTransactor(): Resource[IO, Transactor[IO]] = {
@@ -25,7 +26,7 @@ object PostgreSqlContainer {
         url = cont.getJdbcUrl
       )
 
-      _ <- Resource.eval(RunMigrations(conf))
+      _ <- Resource.eval(RunMigrations(conf, PG))
       transactor <- Resource.eval(IO(DBConnection.of(conf)))
     } yield transactor
   }
